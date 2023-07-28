@@ -104,7 +104,7 @@ def test_that_the_manual_analysis_tool_works(
         ]
     ) < len([r for r in active_reals if r])
 
-    # Click start simulation and agree to the message
+    # Click run experiment and agree to the message
     start_simulation = simulation_panel.findChild(QWidget, name="start_simulation")
 
     def handle_dialog():

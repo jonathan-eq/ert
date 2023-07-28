@@ -149,15 +149,15 @@ def run_experiment(request, opened_main_window):
         assert isinstance(simulation_mode_combo, QComboBox)
         simulation_mode_combo.setCurrentText(experiment_mode.name())
 
-        # Click start simulation and agree to the message
-        start_simulation = simulation_panel.findChild(QWidget, name="start_simulation")
+        # Click run experiment and agree to the message
+        experiment = simulation_panel.findChild(QWidget, name="run_experiment")
 
         def handle_dialog():
             message_box = gui.findChild(QMessageBox)
             qtbot.mouseClick(message_box.buttons()[0], Qt.LeftButton)
 
         QTimer.singleShot(500, handle_dialog)
-        qtbot.mouseClick(start_simulation, Qt.LeftButton)
+        qtbot.mouseClick(experiment, Qt.LeftButton)
 
         # The Run dialog opens, click show details and wait until done appears
         # then click it

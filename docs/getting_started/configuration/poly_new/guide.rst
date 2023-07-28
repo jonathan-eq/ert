@@ -51,12 +51,12 @@ The elements relevant to this guide are:
 * Simulation mode: List of available algorithms. Only a limited set is available since we are not done configuring ERT.
 * Runpath: Configurable path where each realization of the experiment will be executed. The `%d` will be replaced by the number of the realization.
 * Configuration summary: Empty by default, but will show us what has been configured.
-* Start simulation: Start an experiment with the current configuration and simulation mode.
+* Run experiment: Run an experiment with the current configuration and simulation mode.
 
 Run an empty experiment
 ***********************
 To run an empty experiment, select "Ensemble Experiment" as the Simulation
-mode. Then press the "Start Simulation" button. You get a dialog asking if you
+mode. Then press the "Run Experiment" button. You get a dialog asking if you
 want to start with the "default" case. That is fine, so press "Yes". The
 experiment will run, but since we haven't configured a forward model, only an
 empty experiment is executed.

@@ -60,7 +60,7 @@ class SimulationPanel(QWidget):
 
         self.run_button = QToolButton()
         self.run_button.setObjectName("start_simulation")
-        self.run_button.setText("Start simulation")
+        self.run_button.setText("Run Experiment")
         self.run_button.setIcon(resourceIcon("play_circle.svg"))
         self.run_button.setIconSize(QSize(32, 32))
         self.run_button.clicked.connect(self.runSimulation)
@@ -138,7 +138,7 @@ class SimulationPanel(QWidget):
         )
         if (
             QMessageBox.question(
-                self, "Start simulations?", message, QMessageBox.Yes | QMessageBox.No
+                self, "Run experiments?", message, QMessageBox.Yes | QMessageBox.No
             )
             == QMessageBox.Yes
         ):
@@ -163,7 +163,7 @@ class SimulationPanel(QWidget):
                 if (
                     QMessageBox.warning(
                         self,
-                        "Start simulations?",
+                        "Run experiments?",
                         (
                             "ERT is running in an existing runpath.\n\n"
                             "Please be aware of the following:\n"
@@ -187,7 +187,7 @@ class SimulationPanel(QWidget):
                 dialog.show()
 
                 def exit_handler():
-                    self.run_button.setText("Start simulation")
+                    self.run_button.setText("Run Experiment")
                     self.run_button.setDisabled(False)
                     self.notifier.emitErtChange()
 
