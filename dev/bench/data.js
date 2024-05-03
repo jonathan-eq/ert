@@ -1,39 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1712225177242,
-  "repoUrl": "https://github.com/equinor/ert",
+  "lastUpdate": 1714723585843,
+  "repoUrl": "https://github.com/jonathan-eq/ert",
   "entries": {
     "Python Benchmark with pytest-benchmark": [
-      {
-        "commit": {
-          "author": {
-            "email": "feda.curic@gmail.com",
-            "name": "Feda Curic",
-            "username": "dafeda"
-          },
-          "committer": {
-            "email": "44577479+oyvindeide@users.noreply.github.com",
-            "name": "Øyvind Eide",
-            "username": "oyvindeide"
-          },
-          "distinct": true,
-          "id": "6fa9a1367b967682fd53f3765ac9add1608801a5",
-          "message": "Raise error on empty responses and parameters",
-          "timestamp": "2024-03-20T17:56:07+01:00",
-          "tree_id": "548d222a5c47241249602619c2347e4d55ad3b47",
-          "url": "https://github.com/equinor/ert/commit/6fa9a1367b967682fd53f3765ac9add1608801a5"
-        },
-        "date": 1710953947796,
-        "tool": "pytest",
-        "benches": [
-          {
-            "name": "tests/unit_tests/analysis/test_es_update.py::test_and_benchmark_adaptive_localization_with_fields",
-            "value": 0.18749858681143391,
-            "unit": "iter/sec",
-            "range": "stddev: 0.043849147851290134",
-            "extra": "mean: 5.333373530999961 sec\nrounds: 5"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -930,6 +899,37 @@ window.BENCHMARK_DATA = {
             "unit": "iter/sec",
             "range": "stddev: 0.023427344702716568",
             "extra": "mean: 5.315323228400018 sec\nrounds: 5"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "frodeaarstad@gmail.com",
+            "name": "Frode Aarstad",
+            "username": "frode-aarstad"
+          },
+          "committer": {
+            "email": "frodeaarstad@gmail.com",
+            "name": "Frode Aarstad",
+            "username": "frode-aarstad"
+          },
+          "distinct": true,
+          "id": "672aeb2bf0378e92ce795384ec240638cab2e7ba",
+          "message": "Set max-worker-restart to zero",
+          "timestamp": "2024-05-03T09:44:10+02:00",
+          "tree_id": "10a14f476bb639de133ce677c634914eab192c05",
+          "url": "https://github.com/jonathan-eq/ert/commit/672aeb2bf0378e92ce795384ec240638cab2e7ba"
+        },
+        "date": 1714723585352,
+        "tool": "pytest",
+        "benches": [
+          {
+            "name": "tests/unit_tests/analysis/test_es_update.py::test_and_benchmark_adaptive_localization_with_fields",
+            "value": 0.19084237444034463,
+            "unit": "iter/sec",
+            "range": "stddev: 0.059310629876632104",
+            "extra": "mean: 5.2399264206 sec\nrounds: 5"
           }
         ]
       }
