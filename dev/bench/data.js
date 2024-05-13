@@ -1,39 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1714723585843,
+  "lastUpdate": 1715610897343,
   "repoUrl": "https://github.com/jonathan-eq/ert",
   "entries": {
     "Python Benchmark with pytest-benchmark": [
-      {
-        "commit": {
-          "author": {
-            "email": "107626001+jonathan-eq@users.noreply.github.com",
-            "name": "Jonathan Karlsen",
-            "username": "jonathan-eq"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "a71a6dfa90f622408c349eb6edf9e415d2d48f22",
-          "message": "Have lsf_driver specify SIGKILL when bkilling (#7433)\n\nHave lsf_driver specify SIGKILL signal when using bkill",
-          "timestamp": "2024-03-21T07:52:08+01:00",
-          "tree_id": "791e4409e7dc2cad0bc1b9e255c56c64367f1e56",
-          "url": "https://github.com/equinor/ert/commit/a71a6dfa90f622408c349eb6edf9e415d2d48f22"
-        },
-        "date": 1711004119044,
-        "tool": "pytest",
-        "benches": [
-          {
-            "name": "tests/unit_tests/analysis/test_es_update.py::test_and_benchmark_adaptive_localization_with_fields",
-            "value": 0.18753827906639295,
-            "unit": "iter/sec",
-            "range": "stddev: 0.01582365382085041",
-            "extra": "mean: 5.332244728800015 sec\nrounds: 5"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -930,6 +899,37 @@ window.BENCHMARK_DATA = {
             "unit": "iter/sec",
             "range": "stddev: 0.059310629876632104",
             "extra": "mean: 5.2399264206 sec\nrounds: 5"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "aron@hoyer.com",
+            "name": "Aron Høyer",
+            "username": "aronhoyer"
+          },
+          "committer": {
+            "email": "44577479+oyvindeide@users.noreply.github.com",
+            "name": "Øyvind Eide",
+            "username": "oyvindeide"
+          },
+          "distinct": false,
+          "id": "5371acb914ef34680f0879cca36b99e2adcb8d71",
+          "message": "Add realizations to Ensemble manager tree view",
+          "timestamp": "2024-05-08T13:47:19+02:00",
+          "tree_id": "b2c2eaa6148dab9d1ab7d9358f81b2315eb07d26",
+          "url": "https://github.com/jonathan-eq/ert/commit/5371acb914ef34680f0879cca36b99e2adcb8d71"
+        },
+        "date": 1715610896877,
+        "tool": "pytest",
+        "benches": [
+          {
+            "name": "tests/unit_tests/analysis/test_es_update.py::test_and_benchmark_adaptive_localization_with_fields",
+            "value": 0.18983184128509212,
+            "unit": "iter/sec",
+            "range": "stddev: 0.0431206361365216",
+            "extra": "mean: 5.267820157200004 sec\nrounds: 5"
           }
         ]
       }
