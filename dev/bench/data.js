@@ -1,39 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1715610897343,
+  "lastUpdate": 1715842289014,
   "repoUrl": "https://github.com/jonathan-eq/ert",
   "entries": {
     "Python Benchmark with pytest-benchmark": [
-      {
-        "commit": {
-          "author": {
-            "email": "feda.curic@gmail.com",
-            "name": "Feda Curic",
-            "username": "dafeda"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "64fe249bc183f0d07df2dfee487c6d5a32b31e4e",
-          "message": "Ensure correct array type with ES\n\nImportant to make sure fields that should be float32 never get\r\ncast to float64, which would waste memory.",
-          "timestamp": "2024-03-21T09:39:26+01:00",
-          "tree_id": "dff118769c6808a36b467b23c79acf8e0763225b",
-          "url": "https://github.com/equinor/ert/commit/64fe249bc183f0d07df2dfee487c6d5a32b31e4e"
-        },
-        "date": 1711010563376,
-        "tool": "pytest",
-        "benches": [
-          {
-            "name": "tests/unit_tests/analysis/test_es_update.py::test_and_benchmark_adaptive_localization_with_fields",
-            "value": 0.188696566324733,
-            "unit": "iter/sec",
-            "range": "stddev: 0.05191145759745777",
-            "extra": "mean: 5.299513496600002 sec\nrounds: 5"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -930,6 +899,36 @@ window.BENCHMARK_DATA = {
             "unit": "iter/sec",
             "range": "stddev: 0.0431206361365216",
             "extra": "mean: 5.267820157200004 sec\nrounds: 5"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "yngve.s.kristiansen@webstep.no",
+            "name": "Yngve S. Kristiansen"
+          },
+          "committer": {
+            "email": "yngve-sk@users.noreply.github.com",
+            "name": "Yngve S. Kristiansen",
+            "username": "yngve-sk"
+          },
+          "distinct": false,
+          "id": "338202e7e475452641e1f59df97738eb81194881",
+          "message": "Trim jobs.json content",
+          "timestamp": "2024-05-15T09:23:33+02:00",
+          "tree_id": "cc72d39e4fd9478e1e151e1e1d82cb3fc0ccfbec",
+          "url": "https://github.com/jonathan-eq/ert/commit/338202e7e475452641e1f59df97738eb81194881"
+        },
+        "date": 1715842288523,
+        "tool": "pytest",
+        "benches": [
+          {
+            "name": "tests/unit_tests/analysis/test_es_update.py::test_and_benchmark_adaptive_localization_with_fields",
+            "value": 0.186653771570902,
+            "unit": "iter/sec",
+            "range": "stddev: 0.02799926384251774",
+            "extra": "mean: 5.357512958799987 sec\nrounds: 5"
           }
         ]
       }
