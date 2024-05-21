@@ -1,39 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1715842289014,
+  "lastUpdate": 1716275147349,
   "repoUrl": "https://github.com/jonathan-eq/ert",
   "entries": {
     "Python Benchmark with pytest-benchmark": [
-      {
-        "commit": {
-          "author": {
-            "email": "jholba@equinor.com",
-            "name": "Jon Holba",
-            "username": "JHolba"
-          },
-          "committer": {
-            "email": "jon.holba@gmail.com",
-            "name": "Jon Holba",
-            "username": "JHolba"
-          },
-          "distinct": true,
-          "id": "795982a5ef6658c0674368965aeb831f06cf9249",
-          "message": "Unify returncode values for different drivers when process is killed by\nsignal\n\nThis should fix a bug in azure bleeding.",
-          "timestamp": "2024-03-21T13:28:08+01:00",
-          "tree_id": "938bc6c574589e2e1727abcf5fd2907adc07d47b",
-          "url": "https://github.com/equinor/ert/commit/795982a5ef6658c0674368965aeb831f06cf9249"
-        },
-        "date": 1711024313021,
-        "tool": "pytest",
-        "benches": [
-          {
-            "name": "tests/unit_tests/analysis/test_es_update.py::test_and_benchmark_adaptive_localization_with_fields",
-            "value": 0.18739371171325114,
-            "unit": "iter/sec",
-            "range": "stddev: 0.02171807671367211",
-            "extra": "mean: 5.336358359399992 sec\nrounds: 5"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -929,6 +898,37 @@ window.BENCHMARK_DATA = {
             "unit": "iter/sec",
             "range": "stddev: 0.02799926384251774",
             "extra": "mean: 5.357512958799987 sec\nrounds: 5"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "feda.curic@gmail.com",
+            "name": "Feda Curic",
+            "username": "dafeda"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "4a91161b6851a02e96be0f714c5b1def71788c73",
+          "message": "Use private simulation arguments in base run model",
+          "timestamp": "2024-05-21T08:53:51+02:00",
+          "tree_id": "e406f0b2ae6936083be2e66bccc9d2476f6851df",
+          "url": "https://github.com/jonathan-eq/ert/commit/4a91161b6851a02e96be0f714c5b1def71788c73"
+        },
+        "date": 1716275146773,
+        "tool": "pytest",
+        "benches": [
+          {
+            "name": "tests/unit_tests/analysis/test_es_update.py::test_and_benchmark_adaptive_localization_with_fields",
+            "value": 0.18775816054246983,
+            "unit": "iter/sec",
+            "range": "stddev: 0.025534344713842444",
+            "extra": "mean: 5.326000196799998 sec\nrounds: 5"
           }
         ]
       }
