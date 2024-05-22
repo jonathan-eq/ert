@@ -1,39 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1716275147349,
+  "lastUpdate": 1716365623516,
   "repoUrl": "https://github.com/jonathan-eq/ert",
   "entries": {
     "Python Benchmark with pytest-benchmark": [
-      {
-        "commit": {
-          "author": {
-            "email": "JONAK@equinor.com",
-            "name": "Jonathan Karlsen",
-            "username": "jonathan-eq"
-          },
-          "committer": {
-            "email": "107626001+jonathan-eq@users.noreply.github.com",
-            "name": "Jonathan Karlsen",
-            "username": "jonathan-eq"
-          },
-          "distinct": true,
-          "id": "39dbee19267a55a48c8f6d2cd24370fad80f11d3",
-          "message": "Add test for bjobs output with no exec_host",
-          "timestamp": "2024-03-22T07:34:59+01:00",
-          "tree_id": "6165561736be7f36454870ba1195c2b519b303d6",
-          "url": "https://github.com/equinor/ert/commit/39dbee19267a55a48c8f6d2cd24370fad80f11d3"
-        },
-        "date": 1711089499396,
-        "tool": "pytest",
-        "benches": [
-          {
-            "name": "tests/unit_tests/analysis/test_es_update.py::test_and_benchmark_adaptive_localization_with_fields",
-            "value": 0.19032447707140412,
-            "unit": "iter/sec",
-            "range": "stddev: 0.03740357685161665",
-            "extra": "mean: 5.2541849339999995 sec\nrounds: 5"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -929,6 +898,37 @@ window.BENCHMARK_DATA = {
             "unit": "iter/sec",
             "range": "stddev: 0.025534344713842444",
             "extra": "mean: 5.326000196799998 sec\nrounds: 5"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "frodeaarstad@gmail.com",
+            "name": "Frode Aarstad",
+            "username": "frode-aarstad"
+          },
+          "committer": {
+            "email": "frodeaarstad@gmail.com",
+            "name": "Frode Aarstad",
+            "username": "frode-aarstad"
+          },
+          "distinct": true,
+          "id": "0eabeee78361494aded5b3a36cc3a4e45341cd35",
+          "message": "Show parameter and response status",
+          "timestamp": "2024-05-22T09:49:29+02:00",
+          "tree_id": "de48e1d2a41fdde78165493cbf60bee2088f5cc6",
+          "url": "https://github.com/jonathan-eq/ert/commit/0eabeee78361494aded5b3a36cc3a4e45341cd35"
+        },
+        "date": 1716365623058,
+        "tool": "pytest",
+        "benches": [
+          {
+            "name": "tests/unit_tests/analysis/test_es_update.py::test_and_benchmark_adaptive_localization_with_fields",
+            "value": 0.18862624401328032,
+            "unit": "iter/sec",
+            "range": "stddev: 0.02363064879770235",
+            "extra": "mean: 5.301489223999999 sec\nrounds: 5"
           }
         ]
       }
