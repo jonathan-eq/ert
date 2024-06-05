@@ -1,39 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1716365623516,
+  "lastUpdate": 1717574427845,
   "repoUrl": "https://github.com/jonathan-eq/ert",
   "entries": {
     "Python Benchmark with pytest-benchmark": [
-      {
-        "commit": {
-          "author": {
-            "email": "oyveid@equinor.com",
-            "name": "Øyvind Eide",
-            "username": "oyvindeide"
-          },
-          "committer": {
-            "email": "44577479+oyvindeide@users.noreply.github.com",
-            "name": "Øyvind Eide",
-            "username": "oyvindeide"
-          },
-          "distinct": true,
-          "id": "ab421c85be0198656b80fcc7424d0d6f9d00bad7",
-          "message": "Save storage version after migration",
-          "timestamp": "2024-03-22T10:34:32+01:00",
-          "tree_id": "840cd2ee0f70d6ab954a648cdcbb7fa2e391a6cb",
-          "url": "https://github.com/equinor/ert/commit/ab421c85be0198656b80fcc7424d0d6f9d00bad7"
-        },
-        "date": 1711100258217,
-        "tool": "pytest",
-        "benches": [
-          {
-            "name": "tests/unit_tests/analysis/test_es_update.py::test_and_benchmark_adaptive_localization_with_fields",
-            "value": 0.18609876219132077,
-            "unit": "iter/sec",
-            "range": "stddev: 0.028961885165049814",
-            "extra": "mean: 5.373490872399998 sec\nrounds: 5"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -929,6 +898,37 @@ window.BENCHMARK_DATA = {
             "unit": "iter/sec",
             "range": "stddev: 0.02363064879770235",
             "extra": "mean: 5.301489223999999 sec\nrounds: 5"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "yngve-sk@users.noreply.github.com",
+            "name": "Yngve S. Kristiansen",
+            "username": "yngve-sk"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": false,
+          "id": "5eee4ce53dbfbb2bd0e3f949a0506c5c37199a69",
+          "message": "Use plugin fm steps in LibresFacade",
+          "timestamp": "2024-06-04T10:13:40+02:00",
+          "tree_id": "46a6a7dcd4230bf28e4ad17ee54cc7f73414020a",
+          "url": "https://github.com/jonathan-eq/ert/commit/5eee4ce53dbfbb2bd0e3f949a0506c5c37199a69"
+        },
+        "date": 1717574426852,
+        "tool": "pytest",
+        "benches": [
+          {
+            "name": "tests/unit_tests/analysis/test_es_update.py::test_and_benchmark_adaptive_localization_with_fields",
+            "value": 0.1647719755792304,
+            "unit": "iter/sec",
+            "range": "stddev: 0.019353571912806296",
+            "extra": "mean: 6.06899320399998 sec\nrounds: 5"
           }
         ]
       }
