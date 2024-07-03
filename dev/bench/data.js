@@ -1,39 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1717574427845,
+  "lastUpdate": 1720010887862,
   "repoUrl": "https://github.com/jonathan-eq/ert",
   "entries": {
     "Python Benchmark with pytest-benchmark": [
-      {
-        "commit": {
-          "author": {
-            "email": "frodeaarstad@gmail.com",
-            "name": "Frode Aarstad",
-            "username": "frode-aarstad"
-          },
-          "committer": {
-            "email": "frodeaarstad@gmail.com",
-            "name": "Frode Aarstad",
-            "username": "frode-aarstad"
-          },
-          "distinct": true,
-          "id": "692d2afc3ea8ab35e054c2aaa67f60117b93e52f",
-          "message": "Fix single-test-run",
-          "timestamp": "2024-03-22T10:45:31+01:00",
-          "tree_id": "5e5fb7d860e1e6dab2ef31543a0d141c1bd7c232",
-          "url": "https://github.com/equinor/ert/commit/692d2afc3ea8ab35e054c2aaa67f60117b93e52f"
-        },
-        "date": 1711100922194,
-        "tool": "pytest",
-        "benches": [
-          {
-            "name": "tests/unit_tests/analysis/test_es_update.py::test_and_benchmark_adaptive_localization_with_fields",
-            "value": 0.19092129969581922,
-            "unit": "iter/sec",
-            "range": "stddev: 0.015281550932992907",
-            "extra": "mean: 5.237760279199994 sec\nrounds: 5"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -929,6 +898,37 @@ window.BENCHMARK_DATA = {
             "unit": "iter/sec",
             "range": "stddev: 0.019353571912806296",
             "extra": "mean: 6.06899320399998 sec\nrounds: 5"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "114403625+andreas-el@users.noreply.github.com",
+            "name": "Andreas Eknes Lie",
+            "username": "andreas-el"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": false,
+          "id": "0529b5ca0ba1b88e7cd7dcdd35c2fa1cb31c6845",
+          "message": "Simplify Snapshot model\n\n* Remove unused memory variables\r\n* Remove concept JOB\r\n* Remove NodeTypes and reduce COLUMN\r\n* Remove sorted_forward_model_step_ids_by_realization_id\r\n* Remove sorted_realization_ids\r\n* Combine RootNodeData with RootNode\r\n* Remove meaningless emit\r\n* Only redraw altered realizations in the view\r\n* Fix incorrect inheritance in _Node for data\r\n* Remove unused code from row() and deduplicate\r\n* Simplify add_child in _Node\r\n\r\nCo-authored-by: Jon Holba <jholba@equinor.com>",
+          "timestamp": "2024-07-03T12:22:11+02:00",
+          "tree_id": "519b2a3ee72dd04c9c01e694a72c0e1c90389807",
+          "url": "https://github.com/jonathan-eq/ert/commit/0529b5ca0ba1b88e7cd7dcdd35c2fa1cb31c6845"
+        },
+        "date": 1720010887457,
+        "tool": "pytest",
+        "benches": [
+          {
+            "name": "tests/unit_tests/analysis/test_es_update.py::test_and_benchmark_adaptive_localization_with_fields",
+            "value": 0.18718703536680917,
+            "unit": "iter/sec",
+            "range": "stddev: 0.1044294285393071",
+            "extra": "mean: 5.342250322200004 sec\nrounds: 5"
           }
         ]
       }
