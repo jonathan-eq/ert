@@ -1,39 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1720010887862,
+  "lastUpdate": 1722861481998,
   "repoUrl": "https://github.com/jonathan-eq/ert",
   "entries": {
     "Python Benchmark with pytest-benchmark": [
-      {
-        "commit": {
-          "author": {
-            "email": "eide.oyvind87@gmail.com",
-            "name": "Øyvind Eide",
-            "username": "oyvindeide"
-          },
-          "committer": {
-            "email": "44577479+oyvindeide@users.noreply.github.com",
-            "name": "Øyvind Eide",
-            "username": "oyvindeide"
-          },
-          "distinct": true,
-          "id": "fdf0c3c2e3e772745b6afc7fdce834a9ac822225",
-          "message": "Remove unused keyword RESULT_PATH",
-          "timestamp": "2024-03-22T10:47:39+01:00",
-          "tree_id": "480e331e5fbf5fe76875fa516d2471b784af05b5",
-          "url": "https://github.com/equinor/ert/commit/fdf0c3c2e3e772745b6afc7fdce834a9ac822225"
-        },
-        "date": 1711101049875,
-        "tool": "pytest",
-        "benches": [
-          {
-            "name": "tests/unit_tests/analysis/test_es_update.py::test_and_benchmark_adaptive_localization_with_fields",
-            "value": 0.19077649298930938,
-            "unit": "iter/sec",
-            "range": "stddev: 0.023799184829226314",
-            "extra": "mean: 5.241735941000013 sec\nrounds: 5"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -929,6 +898,37 @@ window.BENCHMARK_DATA = {
             "unit": "iter/sec",
             "range": "stddev: 0.1044294285393071",
             "extra": "mean: 5.342250322200004 sec\nrounds: 5"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "havb@equinor.com",
+            "name": "Håvard Berland",
+            "username": "berland"
+          },
+          "committer": {
+            "email": "berland@pvv.ntnu.no",
+            "name": "Håvard Berland",
+            "username": "berland"
+          },
+          "distinct": true,
+          "id": "ce942fda7196abc183e264d6c00c920aeb9c7ea4",
+          "message": "Use succeeded instead of stopped when no failure\n\nThe word STOPPED is too ambigous, use SUCCEEDED instead for ensembles that go\nthrough without failure. This is in line with event names for realizations.",
+          "timestamp": "2024-08-05T14:27:50+02:00",
+          "tree_id": "3f47e71c79379b7135898175e4fa001e0c36b787",
+          "url": "https://github.com/jonathan-eq/ert/commit/ce942fda7196abc183e264d6c00c920aeb9c7ea4"
+        },
+        "date": 1722861481356,
+        "tool": "pytest",
+        "benches": [
+          {
+            "name": "tests/unit_tests/analysis/test_es_update.py::test_and_benchmark_adaptive_localization_with_fields",
+            "value": 0.1912070789235128,
+            "unit": "iter/sec",
+            "range": "stddev: 0.018686807411969326",
+            "extra": "mean: 5.229931891800004 sec\nrounds: 5"
           }
         ]
       }
