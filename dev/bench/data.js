@@ -1,39 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1722861481998,
+  "lastUpdate": 1722931956391,
   "repoUrl": "https://github.com/jonathan-eq/ert",
   "entries": {
     "Python Benchmark with pytest-benchmark": [
-      {
-        "commit": {
-          "author": {
-            "email": "frodeaarstad@gmail.com",
-            "name": "Frode Aarstad",
-            "username": "frode-aarstad"
-          },
-          "committer": {
-            "email": "frodeaarstad@gmail.com",
-            "name": "Frode Aarstad",
-            "username": "frode-aarstad"
-          },
-          "distinct": true,
-          "id": "5d32021da096a038a5d2fae5095a99190bb5a189",
-          "message": "Add a test for opening empty storage",
-          "timestamp": "2024-03-22T12:04:43+01:00",
-          "tree_id": "64e693c55a241a92a495a13ac95696af95445ccc",
-          "url": "https://github.com/equinor/ert/commit/5d32021da096a038a5d2fae5095a99190bb5a189"
-        },
-        "date": 1711105665606,
-        "tool": "pytest",
-        "benches": [
-          {
-            "name": "tests/unit_tests/analysis/test_es_update.py::test_and_benchmark_adaptive_localization_with_fields",
-            "value": 0.1854027183388136,
-            "unit": "iter/sec",
-            "range": "stddev: 0.045628335491161395",
-            "extra": "mean: 5.3936641758000174 sec\nrounds: 5"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -929,6 +898,37 @@ window.BENCHMARK_DATA = {
             "unit": "iter/sec",
             "range": "stddev: 0.018686807411969326",
             "extra": "mean: 5.229931891800004 sec\nrounds: 5"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "eide.oyvind87@gmail.com",
+            "name": "Øyvind Eide",
+            "username": "oyvindeide"
+          },
+          "committer": {
+            "email": "44577479+oyvindeide@users.noreply.github.com",
+            "name": "Øyvind Eide",
+            "username": "oyvindeide"
+          },
+          "distinct": true,
+          "id": "840f483535c4d53d22902e584970ffb85329c546",
+          "message": "Fix typo",
+          "timestamp": "2024-08-06T08:33:53+02:00",
+          "tree_id": "130a8216c28a0dd9f1ab91d2e5370833f855b1d7",
+          "url": "https://github.com/jonathan-eq/ert/commit/840f483535c4d53d22902e584970ffb85329c546"
+        },
+        "date": 1722931956006,
+        "tool": "pytest",
+        "benches": [
+          {
+            "name": "tests/unit_tests/analysis/test_es_update.py::test_and_benchmark_adaptive_localization_with_fields",
+            "value": 0.1917139044704379,
+            "unit": "iter/sec",
+            "range": "stddev: 0.029007161400902173",
+            "extra": "mean: 5.216105752799995 sec\nrounds: 5"
           }
         ]
       }
