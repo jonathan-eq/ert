@@ -1,39 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1723703983898,
+  "lastUpdate": 1729248716550,
   "repoUrl": "https://github.com/jonathan-eq/ert",
   "entries": {
     "Python Benchmark with pytest-benchmark": [
-      {
-        "commit": {
-          "author": {
-            "email": "JONAK@equinor.com",
-            "name": "Jonathan Karlsen",
-            "username": "jonathan-eq"
-          },
-          "committer": {
-            "email": "107626001+jonathan-eq@users.noreply.github.com",
-            "name": "Jonathan Karlsen",
-            "username": "jonathan-eq"
-          },
-          "distinct": true,
-          "id": "42c2fd2557079392817c10e61f2f4c8651ee7bfd",
-          "message": "Increase sleep time flaky integration test\n\nThis commit fixes flakiness in integration test scheduler/test_generic_driver.py::test_kill by increasing sleep time for job to 60 seconds. It might have been flaky in the past due to job finishing before it could be killed.",
-          "timestamp": "2024-03-25T14:47:46+01:00",
-          "tree_id": "5f1e7875d5eda40d9c2c91ba0f59b08f600fb689",
-          "url": "https://github.com/equinor/ert/commit/42c2fd2557079392817c10e61f2f4c8651ee7bfd"
-        },
-        "date": 1711374656710,
-        "tool": "pytest",
-        "benches": [
-          {
-            "name": "tests/unit_tests/analysis/test_es_update.py::test_and_benchmark_adaptive_localization_with_fields",
-            "value": 0.18301420180832076,
-            "unit": "iter/sec",
-            "range": "stddev: 0.15123690416542848",
-            "extra": "mean: 5.464056833399991 sec\nrounds: 5"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -929,6 +898,37 @@ window.BENCHMARK_DATA = {
             "unit": "iter/sec",
             "range": "stddev: 0.029992071457212287",
             "extra": "mean: 5.327876878400002 sec\nrounds: 5"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "ejah@equinor.com",
+            "name": "Eivind Jahren",
+            "username": "eivindjahren"
+          },
+          "committer": {
+            "email": "ejah@equinor.com",
+            "name": "Eivind Jahren",
+            "username": "eivindjahren"
+          },
+          "distinct": false,
+          "id": "da9495dd4160acec5f89fc08de74980245b2db89",
+          "message": "Remove unused constants in tests",
+          "timestamp": "2024-10-17T12:35:25+02:00",
+          "tree_id": "a4a7e65dad9bab82d7142351bbc611bd3809328e",
+          "url": "https://github.com/jonathan-eq/ert/commit/da9495dd4160acec5f89fc08de74980245b2db89"
+        },
+        "date": 1729248715678,
+        "tool": "pytest",
+        "benches": [
+          {
+            "name": "tests/ert/performance_tests/test_analysis.py::test_and_benchmark_adaptive_localization_with_fields",
+            "value": 0.19557090115478312,
+            "unit": "iter/sec",
+            "range": "stddev: 0.008982570043399779",
+            "extra": "mean: 5.113235118799997 sec\nrounds: 5"
           }
         ]
       }
