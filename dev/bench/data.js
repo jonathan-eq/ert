@@ -1,39 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1729248716550,
+  "lastUpdate": 1729841804368,
   "repoUrl": "https://github.com/jonathan-eq/ert",
   "entries": {
     "Python Benchmark with pytest-benchmark": [
-      {
-        "commit": {
-          "author": {
-            "email": "JONAK@equinor.com",
-            "name": "Jonathan Karlsen",
-            "username": "jonathan-eq"
-          },
-          "committer": {
-            "email": "107626001+jonathan-eq@users.noreply.github.com",
-            "name": "Jonathan Karlsen",
-            "username": "jonathan-eq"
-          },
-          "distinct": true,
-          "id": "ef492f029be11b71e114b4e9d1acfbc565594aac",
-          "message": "Skip integration test analysis/test_es_update.py::test_update_multiple_param\n\nThis commit marks the test with `pytest.mark.skip(...)` due to it being very flaky with scheduler, and blocking PRs.",
-          "timestamp": "2024-03-25T15:13:24+01:00",
-          "tree_id": "2177479369cdc3f69f6bab14c9bec6004fc81597",
-          "url": "https://github.com/equinor/ert/commit/ef492f029be11b71e114b4e9d1acfbc565594aac"
-        },
-        "date": 1711376189453,
-        "tool": "pytest",
-        "benches": [
-          {
-            "name": "tests/unit_tests/analysis/test_es_update.py::test_and_benchmark_adaptive_localization_with_fields",
-            "value": 0.18930793498487508,
-            "unit": "iter/sec",
-            "range": "stddev: 0.025809488308540313",
-            "extra": "mean: 5.28239875459999 sec\nrounds: 5"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -929,6 +898,37 @@ window.BENCHMARK_DATA = {
             "unit": "iter/sec",
             "range": "stddev: 0.008982570043399779",
             "extra": "mean: 5.113235118799997 sec\nrounds: 5"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "JONAK@equinor.com",
+            "name": "Jonathan Karlsen",
+            "username": "jonathan-eq"
+          },
+          "committer": {
+            "email": "107626001+jonathan-eq@users.noreply.github.com",
+            "name": "Jonathan Karlsen",
+            "username": "jonathan-eq"
+          },
+          "distinct": true,
+          "id": "2cb3ea0602eb34b551f7712447aa846310ab1beb",
+          "message": "Fix run_dialog second progress bar hanging\n\nThis commit fixes the issue where an immediate experiment failure would leave the second progress bar stuck in indeterminate state.\nThe commit also makes the total progress bar turn red on immediate\nfailures.",
+          "timestamp": "2024-10-25T09:31:30+02:00",
+          "tree_id": "95b4c80a7796a4f5ddef906fe93237951b7cec6e",
+          "url": "https://github.com/jonathan-eq/ert/commit/2cb3ea0602eb34b551f7712447aa846310ab1beb"
+        },
+        "date": 1729841803755,
+        "tool": "pytest",
+        "benches": [
+          {
+            "name": "tests/ert/performance_tests/test_analysis.py::test_and_benchmark_adaptive_localization_with_fields",
+            "value": 0.19066709082732072,
+            "unit": "iter/sec",
+            "range": "stddev: 0.03249001365665956",
+            "extra": "mean: 5.244743577200003 sec\nrounds: 5"
           }
         ]
       }
