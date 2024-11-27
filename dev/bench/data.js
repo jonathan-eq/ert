@@ -1,39 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1729841804368,
+  "lastUpdate": 1732716763582,
   "repoUrl": "https://github.com/jonathan-eq/ert",
   "entries": {
     "Python Benchmark with pytest-benchmark": [
-      {
-        "commit": {
-          "author": {
-            "email": "JONAK@equinor.com",
-            "name": "Jonathan Karlsen",
-            "username": "jonathan-eq"
-          },
-          "committer": {
-            "email": "107626001+jonathan-eq@users.noreply.github.com",
-            "name": "Jonathan Karlsen",
-            "username": "jonathan-eq"
-          },
-          "distinct": true,
-          "id": "f4433dcc3ab0acf699506068cec31dc9ed3eb9d3",
-          "message": "Fix ruff preview rule PLC1901\n\nThis commit makes the code base ruff PLC1901 compliant. This is related\nto empty string comparison.",
-          "timestamp": "2024-04-02T09:31:41+02:00",
-          "tree_id": "9991aaa8999a0b4303b93ed50f97ebc6d24de5bd",
-          "url": "https://github.com/equinor/ert/commit/f4433dcc3ab0acf699506068cec31dc9ed3eb9d3"
-        },
-        "date": 1712043297303,
-        "tool": "pytest",
-        "benches": [
-          {
-            "name": "tests/unit_tests/analysis/test_es_update.py::test_and_benchmark_adaptive_localization_with_fields",
-            "value": 0.19075189771008558,
-            "unit": "iter/sec",
-            "range": "stddev: 0.02935200814712157",
-            "extra": "mean: 5.242411802999993 sec\nrounds: 5"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -929,6 +898,37 @@ window.BENCHMARK_DATA = {
             "unit": "iter/sec",
             "range": "stddev: 0.03249001365665956",
             "extra": "mean: 5.244743577200003 sec\nrounds: 5"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "dan.sava42@gmail.com",
+            "name": "DanSava",
+            "username": "DanSava"
+          },
+          "committer": {
+            "email": "dan.sava42@gmail.com",
+            "name": "Dan Sava",
+            "username": "DanSava"
+          },
+          "distinct": true,
+          "id": "8f8a329e12fcaf826b5914f98f51a2133cbc6564",
+          "message": "Fix everest output folder rolling\n\nIf ert config is initialized before execution rolling logic we end up with two everest output folders the current one and an empty rolled one.",
+          "timestamp": "2024-11-27T21:12:54+09:00",
+          "tree_id": "b5d70b8966e5cb8f72a02d9e198898f65778ff9a",
+          "url": "https://github.com/jonathan-eq/ert/commit/8f8a329e12fcaf826b5914f98f51a2133cbc6564"
+        },
+        "date": 1732716762728,
+        "tool": "pytest",
+        "benches": [
+          {
+            "name": "tests/ert/performance_tests/test_analysis.py::test_and_benchmark_adaptive_localization_with_fields",
+            "value": 0.19371395335040023,
+            "unit": "iter/sec",
+            "range": "stddev: 0.045280061839681314",
+            "extra": "mean: 5.162250745000006 sec\nrounds: 5"
           }
         ]
       }
