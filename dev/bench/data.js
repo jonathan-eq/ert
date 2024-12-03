@@ -1,39 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1732716763582,
+  "lastUpdate": 1733226091540,
   "repoUrl": "https://github.com/jonathan-eq/ert",
   "entries": {
     "Python Benchmark with pytest-benchmark": [
-      {
-        "commit": {
-          "author": {
-            "email": "ejah@equinor.com",
-            "name": "Eivind Jahren",
-            "username": "eivindjahren"
-          },
-          "committer": {
-            "email": "ejah@equinor.com",
-            "name": "Eivind Jahren",
-            "username": "eivindjahren"
-          },
-          "distinct": true,
-          "id": "5689a6af4cb3725934c77906cc78c5d4d843eb34",
-          "message": "Combine annotate_cpp with build_and_test",
-          "timestamp": "2024-04-02T10:39:02+02:00",
-          "tree_id": "cb9efb4b83d3170d372dfbb925f0435d4c222bde",
-          "url": "https://github.com/equinor/ert/commit/5689a6af4cb3725934c77906cc78c5d4d843eb34"
-        },
-        "date": 1712047336513,
-        "tool": "pytest",
-        "benches": [
-          {
-            "name": "tests/unit_tests/analysis/test_es_update.py::test_and_benchmark_adaptive_localization_with_fields",
-            "value": 0.18649373612563688,
-            "unit": "iter/sec",
-            "range": "stddev: 0.04015112748754158",
-            "extra": "mean: 5.362110389199995 sec\nrounds: 5"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -929,6 +898,37 @@ window.BENCHMARK_DATA = {
             "unit": "iter/sec",
             "range": "stddev: 0.045280061839681314",
             "extra": "mean: 5.162250745000006 sec\nrounds: 5"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "ynk@equinor.com",
+            "name": "Yngve S. Kristiansen",
+            "username": "yngve-sk"
+          },
+          "committer": {
+            "email": "yngve-sk@users.noreply.github.com",
+            "name": "Yngve S. Kristiansen",
+            "username": "yngve-sk"
+          },
+          "distinct": false,
+          "id": "c686535222988ea6f4d6ad1bc3ad8c1e6caaf254",
+          "message": "Add fixture for caching everest test-data example",
+          "timestamp": "2024-12-03T08:49:40+01:00",
+          "tree_id": "d03846a637490986ce2db911aa7537a7cb53b6f2",
+          "url": "https://github.com/jonathan-eq/ert/commit/c686535222988ea6f4d6ad1bc3ad8c1e6caaf254"
+        },
+        "date": 1733226091087,
+        "tool": "pytest",
+        "benches": [
+          {
+            "name": "tests/ert/performance_tests/test_analysis.py::test_and_benchmark_adaptive_localization_with_fields",
+            "value": 0.1960258556160552,
+            "unit": "iter/sec",
+            "range": "stddev: 0.022626973103321336",
+            "extra": "mean: 5.101367862199993 sec\nrounds: 5"
           }
         ]
       }
