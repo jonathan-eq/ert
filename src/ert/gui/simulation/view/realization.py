@@ -1,6 +1,7 @@
 from qtpy.QtCore import (
     QAbstractItemModel,
     QEvent,
+    QItemSelection,
     QItemSelectionModel,
     QModelIndex,
     QObject,
@@ -53,8 +54,7 @@ class RealizationWidget(QWidget):
             f"QListView {{ background-color: {self.palette().color(QPalette.Window).name()}; }}"
         )
 
-        self._real_view.clicked.connect(self._item_clicked)
-
+        # self._real_view.clicked.connect(self._item_clicked)
         layout = QVBoxLayout()
         layout.addWidget(self._real_view)
 
@@ -63,8 +63,11 @@ class RealizationWidget(QWidget):
     # Signal when the user selects another real
     itemClicked = Signal(QModelIndex)
 
-    def _item_clicked(self, item: QModelIndex) -> None:
-        self.itemClicked.emit(item)
+    def selectionChanged(
+        self, selected: QItemSelection, deselected: QItemSelection
+    ) -> None:
+        print("JONAK")
+        self.itemClicked.emit(selected.indexes()[0])
 
     def setSnapshotModel(self, model: QAbstractItemModel) -> None:
         self._real_list_model = RealListModel(self, self._iter)
@@ -75,6 +78,7 @@ class RealizationWidget(QWidget):
 
         first_real = self._real_list_model.index(0, 0)
         selection_model = self._real_view.selectionModel()
+        selection_model.selectionChanged.connect(self.selectionChanged)
         if first_real.isValid() and selection_model:
             selection_model.select(first_real, QItemSelectionModel.SelectionFlag.Select)
 
@@ -83,7 +87,7 @@ class RealizationWidget(QWidget):
 
     def refresh_current_selection(self) -> None:
         selected_reals = self._real_view.selectedIndexes()
-        self._item_clicked(selected_reals[0])
+        # self._item_clicked(selected_reals[0])
 
 
 class RealizationDelegate(QStyledItemDelegate):

@@ -1,7 +1,6 @@
 from typing import Any, overload
 
 from qtpy.QtCore import (
-    QAbstractItemModel,
     QAbstractProxyModel,
     QModelIndex,
     QObject,
@@ -19,6 +18,7 @@ from ert.gui.model.snapshot import (
     IsFMStepRole,
     IsRealizationRole,
     NodeRole,
+    SnapshotModel,
 )
 
 
@@ -34,28 +34,8 @@ class FMStepListProxyModel(QAbstractProxyModel):
     @Slot(int, int)
     def set_real(self, iter_: int, real: int) -> None:
         """Called when the user clicks a specific realization in the run_dialog window."""
-        self._disconnect()
-        self.modelAboutToBeReset.emit()
         self._iter = iter_
         self._real = real
-        self.modelReset.emit()
-        self._connect()
-
-    def _disconnect(self) -> None:
-        source_model = self.sourceModel()
-        if source_model is None:
-            return
-        source_model.dataChanged.disconnect(self._source_data_changed)
-        source_model.modelAboutToBeReset.disconnect(self.modelAboutToBeReset)
-        source_model.modelReset.disconnect(self.modelReset)
-
-    def _connect(self) -> None:
-        source_model = self.sourceModel()
-        if source_model is None:
-            return
-        source_model.dataChanged.connect(self._source_data_changed)
-        source_model.modelAboutToBeReset.connect(self.modelAboutToBeReset)
-        source_model.modelReset.connect(self.modelReset)
 
     def _get_source_parent_index(self) -> QModelIndex:
         start = self.index(0, 0, QModelIndex())
@@ -65,16 +45,6 @@ class FMStepListProxyModel(QAbstractProxyModel):
             return QModelIndex()
         source_parent = self.mapToSource(start).parent()
         return source_parent
-
-    @override
-    def setSourceModel(self, sourceModel: QAbstractItemModel | None) -> None:
-        if not sourceModel:
-            raise ValueError("need source model")
-        self.beginResetModel()
-        self._disconnect()
-        super().setSourceModel(sourceModel)
-        self._connect()
-        self.endResetModel()
 
     @override
     def headerData(
@@ -102,7 +72,7 @@ class FMStepListProxyModel(QAbstractProxyModel):
     def rowCount(self, parent: QModelIndex | None = None) -> int:
         parent = parent if parent else QModelIndex()
         if not parent.isValid():
-            source_model = self.sourceModel()
+            source_model: SnapshotModel = self.sourceModel()
             assert source_model is not None
             source_index = self._get_source_parent_index()
             if source_index.isValid():
@@ -129,7 +99,7 @@ class FMStepListProxyModel(QAbstractProxyModel):
 
     def mapToSource(self, proxyIndex: QModelIndex) -> QModelIndex:
         if proxyIndex.isValid():
-            sm = self.sourceModel()
+            sm: SnapshotModel = self.sourceModel()
             assert sm is not None
             iter_index = sm.index(self._iter, 0, QModelIndex())
             if iter_index.isValid() and sm.hasChildren(iter_index):
@@ -144,15 +114,6 @@ class FMStepListProxyModel(QAbstractProxyModel):
             if src_index.isValid() and self._accept_index(src_index)
             else QModelIndex()
         )
-
-    def _source_data_changed(
-        self, top_left: QModelIndex, bottom_right: QModelIndex, roles: list[int]
-    ) -> None:
-        if self._accept_index(top_left):
-            proxy_top_left = self.mapFromSource(top_left)
-            proxy_bottom_right = self.mapFromSource(bottom_right)
-            if all([proxy_top_left.isValid(), proxy_bottom_right.isValid()]):
-                self.dataChanged.emit(proxy_top_left, proxy_bottom_right, roles)
 
     def _accept_index(self, index: QModelIndex) -> bool:
         if not index.internalPointer() or not index.data(IsFMStepRole):

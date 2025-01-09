@@ -43,6 +43,7 @@ from ert.ensemble_evaluator import identifiers as ids
 from ert.gui.ertnotifier import ErtNotifier
 from ert.gui.ertwidgets.message_box import ErtMessageBox
 from ert.gui.model.fm_step_list import FMStepListProxyModel
+from ert.gui.model.real_list import RealListModel
 from ert.gui.model.snapshot import (
     FM_STEP_COLUMNS,
     FileRole,
@@ -298,6 +299,7 @@ class RunDialog(QFrame):
         widget = self._tab_widget.widget(index)
         if isinstance(widget, RealizationWidget):
             widget.refresh_current_selection()
+        print(index)
 
         self.fm_step_frame.setHidden(isinstance(widget, UpdateWidget))
 
@@ -307,15 +309,17 @@ class RunDialog(QFrame):
     ) -> None:
         if not parent.isValid():
             index = self._snapshot_model.index(start, 0, parent)
+            print(type(index.internalPointer()))
             iter_row = start
             self._iteration_progress_label.setText(
                 f"Progress for iteration {index.internalPointer().id_}"
             )
 
             widget = RealizationWidget(iter_row)
+            # self._fm_step_overview.setSelectionModel(widget._real_view.selectionModel())
             widget.setSnapshotModel(self._snapshot_model)
             widget.itemClicked.connect(self._select_real)
-            self._select_real(widget._real_list_model.index(0, 0))
+            # self._select_real(widget._real_list_model.index(0, 0))
             tab_index = self._tab_widget.addTab(
                 widget, f"Realizations for iteration {index.internalPointer().id_}"
             )
@@ -324,9 +328,12 @@ class RunDialog(QFrame):
 
     @Slot(QModelIndex)
     def _select_real(self, index: QModelIndex) -> None:
+        print("CALELD SET REAL MANUALLY 2")
         if index.isValid():
             real = index.row()
-            iter_ = index.model().get_iter()  # type: ignore
+            model: RealListModel = index.model()
+            curTab: RealizationWidget = self._tab_widget.currentWidget()
+            iter_ = model.get_iter()  # type: ignore
             exec_hosts = None
 
             iter_node = self._snapshot_model.root.children.get(str(iter_), None)
@@ -335,7 +342,7 @@ class RunDialog(QFrame):
                 if real_node:
                     exec_hosts = real_node.data.exec_hosts
 
-            self._fm_step_overview.set_realization(iter_, real)
+            # self._fm_step_overview.set_realization(iter_, real)
             text = f"Realization id {index.data(RealIens)} in iteration {index.data(IterNum)}"
             if exec_hosts and exec_hosts != "-":
                 text += f", assigned to host: {exec_hosts}"
