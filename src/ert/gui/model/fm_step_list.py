@@ -71,10 +71,12 @@ class FMStepListProxyModel(QAbstractProxyModel):
 
     def rowCount(self, parent: QModelIndex | None = None) -> int:
         parent = parent if parent else QModelIndex()
+        # JONAK - SHOULDNT PARENT ALWAYS BE VALID? AN FM STEP SHOULD ALWAYS HAVE A REALIZATION
         if not parent.isValid():
             source_model: SnapshotModel = self.sourceModel()
             assert source_model is not None
-            source_index = self._get_source_parent_index()
+            source_index = self._get_source_parent_index()  # This should be a realindex
+            print()
             if source_index.isValid():
                 return source_model.rowCount(source_index)
         return 0
@@ -132,4 +134,5 @@ class FMStepListProxyModel(QAbstractProxyModel):
         return self._iter
 
     def get_real(self) -> int:
+        return
         return self._real
