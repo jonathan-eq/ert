@@ -78,6 +78,9 @@ class DesignMatrix:
             default_sheet=default_sheet,
         )
 
+    def get_num_realizations(self) -> int:
+        return self.active_realizations.count(True)
+
     def merge_with_other(self, dm_other: DesignMatrix) -> None:
         errors = []
         if self.active_realizations != dm_other.active_realizations:
@@ -191,7 +194,7 @@ class DesignMatrix:
 
         if error_list := DesignMatrix._validate_design_matrix(design_matrix_df):
             error_msg = "\n".join(error_list)
-            raise ValueError(f"Design matrix is not valid, error:\n{error_msg}")
+            raise ValueError(f"Design matrix is not valid, error(s):\n{error_msg}")
 
         defaults_to_use = DesignMatrix._read_defaultssheet(
             self.xls_filename, self.default_sheet, design_matrix_df.columns.to_list()
@@ -259,13 +262,6 @@ class DesignMatrix:
             return []
         errors = []
         column_na_mask = design_matrix.columns.isna()
-        column_indexes_unnamed = [
-            index for index, value in enumerate(column_na_mask) if value
-        ]
-        if len(column_indexes_unnamed) > 0:
-            errors.append(
-                f"Column headers not present in column {column_indexes_unnamed}"
-            )
         if not design_matrix.columns[~column_na_mask].is_unique:
             errors.append("Duplicate parameter names found in design sheet")
         empties = [
@@ -274,6 +270,16 @@ class DesignMatrix:
         ]
         if len(empties) > 0:
             errors.append(f"Design matrix contains empty cells {empties}")
+
+        for column_num, param_name in enumerate(design_matrix.columns):
+            if pd.isna(param_name) or len(param_name.split()) == 0:
+                errors.append(f"Empty parameter name found in column {column_num}.")
+            elif len(param_name.split()) > 1:
+                errors.append(
+                    f"Multiple words in parameter name found in column {column_num} ({param_name})."
+                )
+            elif param_name.isnumeric():
+                errors.append(f"Numeric parameter name found in column {column_num}.")
         return errors
 
     @staticmethod
