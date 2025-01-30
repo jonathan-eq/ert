@@ -88,6 +88,9 @@ class EnsembleExperimentPanel(ExperimentConfigPanel):
             self._active_realizations_field.setText(
                 ActiveRange(design_matrix.active_realizations).rangestring
             )
+            self._active_realizations_field.setValidator(
+                RangeStringArgument(design_matrix.get_num_realizations())
+            )
             show_dm_param_button = QPushButton("Show parameters")
             show_dm_param_button.setObjectName("show-dm-parameters")
             show_dm_param_button.setMinimumWidth(50)
