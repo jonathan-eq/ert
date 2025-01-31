@@ -157,11 +157,17 @@ def evaluator_server_config_generator():
 
 
 @pytest.fixture
-def cached_example(pytestconfig, evaluator_server_config_generator):
+def cached_example(pytestconfig: pytest.Config, evaluator_server_config_generator):
     cache = pytestconfig.cache
 
     def run_config(test_data_case: str):
-        if cache.get(f"cached_example:{test_data_case}", None) is None:
+        if (
+            cache.get(
+                f"cached_example:{test_data_case}:{os.environ.get('PYTEST_XDIST_WORKER', '')}",
+                None,
+            )
+            is None
+        ):
             my_tmpdir = Path(tempfile.mkdtemp())
             config_path = (
                 Path(__file__) / f"../../../test-data/everest/{test_data_case}"
@@ -187,14 +193,14 @@ def cached_example(pytestconfig, evaluator_server_config_generator):
             }
 
             cache.set(
-                f"cached_example:{test_data_case}",
+                f"cached_example:{test_data_case}:{os.environ.get('PYTEST_XDIST_WORKER', '')}",
                 (str(result_path), config_file, optimal_result_json),
             )
 
         result_path, config_file, optimal_result_json = cache.get(
-            f"cached_example:{test_data_case}", (None, None, None)
+            f"cached_example:{test_data_case}:{os.environ.get('PYTEST_XDIST_WORKER', '')}",
+            (None, None, None),
         )
-
         copied_tmpdir = tempfile.mkdtemp()
         shutil.copytree(result_path, Path(copied_tmpdir) / "everest")
         copied_path = str(Path(copied_tmpdir) / "everest")

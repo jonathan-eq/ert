@@ -74,6 +74,9 @@ def test_api_snapshots(config_file, snapshot, cached_example):
         .strip()
         + "\n"
     )
+    snapshot.snapshot_dir = (
+        Path(str(snapshot.snapshot_dir).split(config_file)[0]) / config_file
+    )
     snapshot.assert_match(snapshot_str, "snapshot.json")
 
 
@@ -119,6 +122,9 @@ def test_api_summary_snapshot(config_file, snapshot, cached_example):
 
     api = EverestDataAPI(config)
     dicts = api.summary_values().to_dicts()
+    snapshot.snapshot_dir = (
+        Path(str(snapshot.snapshot_dir).split(config_file)[0]) / config_file
+    )
     snapshot.assert_match(
         orjson.dumps(dicts, option=orjson.OPT_INDENT_2).decode("utf-8").strip() + "\n",
         "snapshot.json",
