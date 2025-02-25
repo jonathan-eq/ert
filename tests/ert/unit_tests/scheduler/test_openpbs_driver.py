@@ -1,5 +1,6 @@
 import asyncio
 import contextlib
+import getopt
 import json
 import logging
 import os
@@ -14,6 +15,7 @@ from hypothesis import given
 from hypothesis import strategies as st
 
 from ert.cli.main import ErtCliError
+from ert.config.queue_config import _parse_realization_memory_str
 from ert.mode_definitions import ENSEMBLE_EXPERIMENT_MODE
 from ert.scheduler.openpbs_driver import (
     JOB_STATES,
@@ -606,3 +608,58 @@ def test_openpbs_driver_with_poly_example_failing_poll_fails_ert_and_propagates_
             "poly.ert",
         )
     assert "RuntimeError: Status polling failed" in caplog.text
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("copy_poly_case")
+def test_queue_options_are_propagated_from_config_to_qsub(monkeypatch):
+    """
+    This end to end test is here to verify that queue_options are correctly propagated all the way from ert config to the cluster.
+    """
+    mock_bin(monkeypatch, os.getcwd())
+    expected_queue = "foo_bar_queue"
+    expected_realization_memory = "9GB"
+    expected_project_code = "foo_bar_project"
+    expected_cluster_label = "foo_bar_cluster"
+    expected_num_cpu = 98
+    with open("poly.ert", "a", encoding="utf-8") as f:
+        f.write(
+            dedent(
+                f"""\
+                NUM_CPU {expected_num_cpu}
+                REALIZATION_MEMORY {expected_realization_memory}
+                QUEUE_SYSTEM TORQUE
+                QUEUE_OPTION TORQUE QUEUE {expected_queue}
+                QUEUE_OPTION TORQUE CLUSTER_LABEL {expected_cluster_label}
+                QUEUE_OPTION TORQUE PROJECT_CODE {expected_project_code}
+                NUM_REALIZATIONS 1
+                """
+            )
+        )
+    run_cli(ENSEMBLE_EXPERIMENT_MODE, "--disable-monitoring", "poly.ert")
+    mock_jobs_dir = Path(f"{os.environ.get('PYTEST_TMP_PATH')}/mock_jobs")
+    job_dir = next(
+        mock_jobs_dir.iterdir()
+    )  # There is only one realization in this test
+    complete_command_invocation = (job_dir / "complete_command_invocation").read_text(
+        encoding="utf-8"
+    )
+
+    args = shlex.split(complete_command_invocation)
+    _ = args.pop(0)  # script path
+    opts, _ = getopt.getopt(args, "N:r:o:e:l:q:A:")
+    parsed_options = dict(opts)
+
+    assert parsed_options.get("-q") == expected_queue
+    assert parsed_options.get("-A") == expected_project_code
+
+    # -l was not parsed correctly by getopt, so we read it manually instead.
+    complete_resource_requirement = (job_dir / "resource_requirement").read_text(
+        encoding="utf-8"
+    )
+    assert (
+        f"mem={_parse_realization_memory_str(expected_realization_memory) // 1024**2}mb"
+        in complete_resource_requirement
+    )
+    assert f"ncpus={expected_num_cpu}" in complete_resource_requirement
+    assert expected_cluster_label in complete_resource_requirement
