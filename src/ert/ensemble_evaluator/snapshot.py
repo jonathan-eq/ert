@@ -380,6 +380,11 @@ class EnsembleSnapshot:
                     error=error,
                 )
             )
+            if (start_time and end_time) and end_time < start_time:
+                logger.error(f"JONAK8 - end_time is before start_time in EE snapshot {start_time=} {end_time=}") 
+            logger.info(
+                f"Ensemblesnapshot created FMSnapshot with {start_time=} and {end_time=}"
+            )
 
             if type(event) is ForwardModelStepRunning:
                 fm["current_memory_usage"] = event.current_memory_usage

@@ -73,9 +73,14 @@ _QCOLORS = {
 def _estimate_duration(
     start_time: datetime, end_time: datetime | None = None
 ) -> timedelta:
+    #if not end_time:
+        #logger.error(f"JONAK9: End time is None in _estimate_duration, so defaulting to end_time {datetime.now(start_time.tzinfo)} {start_time=}")
     if not end_time or end_time < start_time:
         end_time = datetime.now(start_time.tzinfo)
-    return end_time - start_time
+    est_dur = end_time - start_time
+    if est_dur.total_seconds() < 0:
+        logger.error(f"JONAK55: Estimated duration is negative {est_dur=} {start_time=} {end_time=}")
+    return est_dur
 
 
 class SnapshotModel(QAbstractItemModel):
@@ -169,11 +174,27 @@ class SnapshotModel(QAbstractItemModel):
                 fm_steps_changed_by_real[real_id].append(fm_step_node.row())
                 if start_time := fm_step.get("start_time", None):
                     fm_step["start_time"] = convert_iso8601_to_datetime(start_time)
+                old_start_time = fm_step_node.data.get(ids.START_TIME)
                 if end_time := fm_step.get("end_time", None):
                     fm_step["end_time"] = convert_iso8601_to_datetime(end_time)
+                    if not fm_step.get("start_time") and old_start_time:
+                        if (end_time-old_start_time).total_seconds() < 0:
+                            logger.error(
+                                f"JONAK6 start time is None in _update_snapshot, but we had end_time {end_time=}. Using {old_start_time=}. {(end_time-old_start_time).total_seconds()=}"
+                            )
+                    elif fm_step["start_time"] > fm_step["end_time"]:
+                        logger.error(
+                            f"JONAK5 start time is after end time in _update_snapshot {start_time=} {end_time=}"
+                        )
                 # Errors may be unset as the queue restarts the job
                 fm_step[ids.ERROR] = fm_step.get(ids.ERROR, "")
                 fm_step_node.data.update(fm_step)
+                if fm_step_node.data.get("start_time") and fm_step_node.data.get("end_time"):
+                    if (delta := _estimate_duration(fm_step_node.data["start_time"], fm_step_node.data["end_time"])).total_seconds() < 0:
+                        logger.error(f"""JONAK333: Estimated duration is negative {delta=} {fm_step_node.data['start_time']=} {fm_step_node.data['end_time']=}""")
+                new_start_time = fm_step_node.data.get(ids.START_TIME)
+                if old_start_time and new_start_time and old_start_time != new_start_time:
+                    logger.error(f"JONAK 999: Start time changed in _update_snapshot!!! {old_start_time=} {new_start_time=}")
                 if cur_mem_usage := fm_step.get("current_memory_usage", None):
                     real_node.data.current_memory_usage = int(float(cur_mem_usage))
                 if maximum_mem_usage := fm_step.get("max_memory_usage", None):
@@ -243,6 +264,14 @@ class SnapshotModel(QAbstractItemModel):
                     fm_step["start_time"] = convert_iso8601_to_datetime(start_time)
                 if end_time := fm_step.get("end_time", None):
                     fm_step["end_time"] = convert_iso8601_to_datetime(end_time)
+                    if not fm_step.get("start_time"):
+                        logger.error(
+                            f"JONAK 2 start time is None in _add_snapshot, but we had end_time {end_time=}"
+                        )
+                if (start_time and end_time) and start_time > end_time:
+                    logger.error(
+                        f"JONAK3 start time is after end time in _add_snapshot {start_time=} {end_time=}"
+                    )
                 fm_step_node = ForwardModelStepNode(
                     id_=fm_step_id, data=fm_step, parent=real_node
                 )
@@ -424,12 +453,16 @@ class SnapshotModel(QAbstractItemModel):
                 start_time = node.data.get(ids.START_TIME)
                 if start_time is None:
                     return None
-                delta = _estimate_duration(
+                old_delta = _estimate_duration(
                     start_time, end_time=node.data.get(ids.END_TIME)
                 )
                 # There is no method for truncating microseconds, so we remove them
-                delta -= timedelta(microseconds=delta.microseconds)
-                return str(delta)
+                if old_delta.total_seconds()< 0:
+                    print(f"JONAK55555: Negative duration in _fm_step_data {old_delta=}")
+                new_delta = old_delta - timedelta(microseconds=old_delta.microseconds)
+                if new_delta.total_seconds() < 0:
+                    print(f"JONAK77777777: CHANGED DELTA AND NOW IT IS NEGATIVE {old_delta=} {new_delta=}")
+                return str(new_delta)
 
             return node.data.get(data_name)
 
@@ -458,6 +491,8 @@ class SnapshotModel(QAbstractItemModel):
                         start_time, end_time=node.data.get(ids.END_TIME)
                     )
                     tt_text = f"Start time: {start_time!s}\nDuration: {delta!s}"
+                    if delta.total_seconds() < 0:
+                        print(f"JONAK4444: Negative duration in _fm_step_data {delta=}")
             if tt_text is not None:
                 return str(tt_text)
 
