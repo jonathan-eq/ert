@@ -173,7 +173,7 @@ class SnapshotModel(QAbstractItemModel):
                     fm_step["end_time"] = convert_iso8601_to_datetime(end_time)
                 # Errors may be unset as the queue restarts the job
                 fm_step[ids.ERROR] = fm_step.get(ids.ERROR, "")
-                fm_step_node.data.update(fm_step)
+                fm_step_node.data |= fm_step
                 if cur_mem_usage := fm_step.get("current_memory_usage", None):
                     real_node.data.current_memory_usage = int(float(cur_mem_usage))
                 if maximum_mem_usage := fm_step.get("max_memory_usage", None):

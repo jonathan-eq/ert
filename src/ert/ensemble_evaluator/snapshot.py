@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import logging
+import time
 from collections import Counter, defaultdict
 from collections.abc import Mapping
 from datetime import datetime
 from typing import Any, TypeVar, cast, get_args
 
+import orjson
 from PyQt6.QtGui import QColor
 from typing_extensions import TypedDict
 
@@ -120,6 +122,16 @@ class EnsembleSnapshot:
             sorted_fm_step_ids=defaultdict(list),
         )
 
+    def deep_copy(self) -> EnsembleSnapshot:
+        new = EnsembleSnapshot()
+        new._realization_snapshots = orjson.loads(
+            orjson.dumps(self._realization_snapshots)
+        )
+        for k, v in self._fm_step_snapshots.items():
+            new._fm_step_snapshots[k] = orjson.loads(orjson.dumps(v))
+        new._ensemble_state = self._ensemble_state
+        return new
+
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, EnsembleSnapshot):
             return NotImplemented
@@ -148,17 +160,17 @@ class EnsembleSnapshot:
             self._fm_step_snapshots[fm_step_idx] = fm_step_snapshot
 
     def merge_snapshot(self, ensemble: EnsembleSnapshot) -> EnsembleSnapshot:
-        self._metadata.update(ensemble._metadata)
+        self._metadata |= ensemble._metadata
         if ensemble._ensemble_state is not None:
             self._ensemble_state = ensemble._ensemble_state
         for real_id, other_real_data in ensemble._realization_snapshots.items():
-            self._realization_snapshots[real_id].update(other_real_data)
+            self._realization_snapshots[real_id] |= other_real_data
         for fm_step_id, other_fm_data in ensemble._fm_step_snapshots.items():
-            self._fm_step_snapshots[fm_step_id].update(other_fm_data)
+            self._fm_step_snapshots[fm_step_id] |= other_fm_data
         return self
 
     def merge_metadata(self, metadata: EnsembleSnapshotMetadata) -> None:
-        self._metadata.update(metadata)
+        self._metadata |= metadata
 
     def to_dict(self) -> dict[str, Any]:
         """used to send snapshot updates"""
@@ -253,15 +265,13 @@ class EnsembleSnapshot:
         exec_hosts: str | None = None,
         message: str | None = None,
     ) -> EnsembleSnapshot:
-        self._realization_snapshots[real_id].update(
-            _filter_nones(
-                RealizationSnapshot(
-                    status=status,
-                    start_time=start_time,
-                    end_time=end_time,
-                    exec_hosts=exec_hosts,
-                    message=message,
-                )
+        self._realization_snapshots[real_id] |= _filter_nones(
+            RealizationSnapshot(
+                status=status,
+                start_time=start_time,
+                end_time=end_time,
+                exec_hosts=exec_hosts,
+                message=message,
             )
         )
         return self
@@ -311,14 +321,12 @@ class EnsembleSnapshot:
                         fm_idx = (event.real, fm_step_id)
                         if fm_idx not in source_snapshot._fm_step_snapshots:
                             self._fm_step_snapshots[fm_idx] = FMStepSnapshot()
-                        self._fm_step_snapshots[fm_idx].update(
-                            FMStepSnapshot(
-                                status=state.FORWARD_MODEL_STATE_FAILURE,
-                                end_time=end_time,
-                                error="The run is cancelled due to "
-                                "reaching MAX_RUNTIME",
-                            )
+                        self._fm_step_snapshots[fm_idx] |= FMStepSnapshot(
+                            status=state.FORWARD_MODEL_STATE_FAILURE,
+                            end_time=end_time,
+                            error="The run is cancelled due to reaching MAX_RUNTIME",
                         )
+
             elif e_type is RealizationStoppedLongRunning:
                 for (
                     fm_step_id,
@@ -328,30 +336,26 @@ class EnsembleSnapshot:
                         fm_idx = (event.real, fm_step_id)
                         if fm_idx not in source_snapshot._fm_step_snapshots:
                             self._fm_step_snapshots[fm_idx] = FMStepSnapshot()
-                        self._fm_step_snapshots[fm_idx].update(
-                            FMStepSnapshot(
-                                status=state.FORWARD_MODEL_STATE_FAILURE,
-                                end_time=end_time,
-                                error="The run is cancelled due to "
-                                "excessive runtime, 25% more than the average "
-                                "runtime (check keyword STOP_LONG_RUNNING)",
-                            )
+                        self._fm_step_snapshots[fm_idx] |= FMStepSnapshot(
+                            status=state.FORWARD_MODEL_STATE_FAILURE,
+                            end_time=end_time,
+                            error="The run is cancelled due to "
+                            "excessive runtime, 25% more than the average "
+                            "runtime (check keyword STOP_LONG_RUNNING)",
                         )
             elif e_type is RealizationResubmit:
                 for fm_step_id in source_snapshot.get_fm_steps_for_real(event.real):
                     fm_idx = (event.real, fm_step_id)
-                    self._fm_step_snapshots[fm_idx].update(
-                        FMStepSnapshot(
-                            status=state.FORWARD_MODEL_STATE_INIT,
-                            start_time=None,
-                            end_time=None,
-                            current_memory_usage=None,
-                            max_memory_usage=None,
-                            cpu_seconds=None,
-                            error=None,
-                            stdout=None,
-                            stderr=None,
-                        )
+                    self._fm_step_snapshots[fm_idx] |= FMStepSnapshot(
+                        status=state.FORWARD_MODEL_STATE_INIT,
+                        start_time=None,
+                        end_time=None,
+                        current_memory_usage=None,
+                        max_memory_usage=None,
+                        cpu_seconds=None,
+                        error=None,
+                        stdout=None,
+                        stderr=None,
                     )
 
         elif e_type in get_args(FMEvent):
@@ -416,7 +420,7 @@ class EnsembleSnapshot:
             previous_error := self._fm_step_snapshots[real_id, fm_step_id].get("error")
         ) and fm_step.get("error") == FORWARD_MODEL_TERMINATED_MSG:
             fm_step["error"] = previous_error
-        self._fm_step_snapshots[real_id, fm_step_id].update(fm_step)
+        self._fm_step_snapshots[real_id, fm_step_id] |= fm_step
         return self
 
 
