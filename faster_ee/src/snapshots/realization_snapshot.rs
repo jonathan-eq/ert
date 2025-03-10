@@ -33,8 +33,29 @@ impl RealizationSnapshot {
             fm_steps: None,
         }
     }
+    pub fn update_from_event(&mut self, event: &RealizationEvent) -> &mut Self {
+        self.exec_hosts = event.get_exec_hosts();
+        self.status = Some(String::from(event.get_status()));
 
-    pub fn update_from(&mut self, other_snapshot: Self) {
+        match event {
+            RealizationEvent::RealizationRunning(inner_event) => {
+                self.start_time = Some(inner_event.time);
+            }
+            RealizationEvent::RealizationFailed(inner_event) => {
+                self.message = inner_event.message.clone();
+                self.end_time = Some(inner_event.time);
+            }
+            RealizationEvent::RealizationSuccess(inner_event) => {
+                self.end_time = Some(inner_event.time);
+            }
+            RealizationEvent::RealizationTimeout(inner_event) => {
+                self.end_time = Some(inner_event.time);
+            }
+            _ => {}
+        }
+        self
+    }
+    pub fn update_from(&mut self, other_snapshot: &Self) {
         update_field_if_set!(self, other_snapshot, active);
         update_field_if_set!(self, other_snapshot, end_time);
         update_field_if_set!(self, other_snapshot, exec_hosts);

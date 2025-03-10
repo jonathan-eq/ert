@@ -4,8 +4,8 @@ use serde::{Deserialize, Serialize};
 #[macro_export]
 macro_rules! update_field_if_set {
     ($self:ident, $other:ident, $field:ident) => {
-        if let Some(value) = $other.$field {
-            $self.$field = Some(value);
+        if let Some(value) = &$other.$field {
+            $self.$field = Some(value.clone());
         }
     };
 }

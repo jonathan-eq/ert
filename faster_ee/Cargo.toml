@@ -1,6 +1,6 @@
 [package]
 name = "faster_ee"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -12,7 +12,7 @@ path = "src/lib.rs"
 [dependencies]
 chrono = { version = "0.4.40", features = ["serde"] }
 crossbeam = "0.8.4"
-pyo3 = { version = "0.23.3", features = ["macros"] }
+#pyo3 = { version = "0.23.3", features = ["macros"] }
 serde = { version = "1.0.218", features = ["derive"] }
 serde_json = "1.0.140"
 zmq = "0.10.0"
