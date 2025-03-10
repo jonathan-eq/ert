@@ -6,10 +6,11 @@ use crate::EE;
 use super::DestinationHandler;
 
 impl EE {
-    fn process_event_buffer(self: Arc<Self>) {
+    pub fn process_event_buffer(self: Arc<Self>) {
         while self.is_running() {
             match self._batch_processing_queue.pop() {
                 Some(inner_event) => {
+                    println!("PROCESS EVENT BUFFER RAN AND FOUND EVENT!");
                     for (handler, events) in inner_event {
                         match handler {
                             DestinationHandler::FMHandler => {

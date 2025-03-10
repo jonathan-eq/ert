@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use chrono::{DateTime, Utc};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::{
     events::types::{FmStepId, RealId},
@@ -10,7 +10,7 @@ use crate::{
 
 use super::fm_step_snapshot::FMStepSnapshot;
 
-#[derive(Clone, Serialize)]
+#[derive(Clone, Serialize, Debug)]
 pub struct RealizationSnapshot {
     pub status: Option<String>,
     pub active: Option<bool>,
@@ -106,6 +106,7 @@ pub struct RealizationUnknown {
     pub queue_event_type: Option<String>,
     pub exec_hosts: Option<String>,
 }
+#[derive(Debug, Deserialize)]
 pub struct RealizationWaiting {
     pub real: RealId,
     pub time: DateTime<Utc>,

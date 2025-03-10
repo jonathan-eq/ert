@@ -13,7 +13,7 @@ use crate::{
 use super::DestinationHandler;
 
 impl EE {
-    fn _batch_events_into_buffer(self: Arc<Self>) {
+    pub fn _batch_events_into_buffer(self: Arc<Self>) {
         while self.is_running() {
             let mut batch: HashMap<DestinationHandler, Vec<Event>> = HashMap::new();
             let start_time = Utc::now();
@@ -24,14 +24,32 @@ impl EE {
                 events_in_map_count = events_in_map_count + 1;
                 match self._events.pop() {
                     Some(inner_event) => match inner_event {
-                        DispatcherEvent::ForwardModelStepFailure(nested) => {
+                        DispatcherEvent::ForwardModelStepStart(event) => {
                             batch
                                 .entry(DestinationHandler::FMHandler)
                                 .or_default()
-                                .push(Event::FMEvent(FMEvent::ForwardModelStepFailure(nested)));
+                                .push(Event::FMEvent(FMEvent::ForwardModelStepStart(event)));
+                        }
+                        DispatcherEvent::ForwardModelStepRunning(event) => {
+                            batch
+                                .entry(DestinationHandler::FMHandler)
+                                .or_default()
+                                .push(Event::FMEvent(FMEvent::ForwardModelStepRunning(event)));
+                        }
+                        DispatcherEvent::ForwardModelStepSuccess(event) => {
+                            batch
+                                .entry(DestinationHandler::FMHandler)
+                                .or_default()
+                                .push(Event::FMEvent(FMEvent::ForwardModelStepSuccess(event)));
+                        }
+                        DispatcherEvent::ForwardModelStepFailure(event) => {
+                            batch
+                                .entry(DestinationHandler::FMHandler)
+                                .or_default()
+                                .push(Event::FMEvent(FMEvent::ForwardModelStepFailure(event)));
                         }
                         _ => {
-                            println!("Not handling this type of event yet")
+                            println!("Not handling this type of event yet {:?}", inner_event);
                         }
                     },
                     None => {
@@ -40,7 +58,10 @@ impl EE {
                     }
                 }
             }
-            self._batch_processing_queue.push(batch);
+            if batch.len() > 0 {
+                println!("ADDING EVENT TO BATCHING QUEUE");
+                self._batch_processing_queue.push(batch);
+            }
             if self._events.len() > 500 {
                 println!(
                     "There is a lot of events left in queue ({})",

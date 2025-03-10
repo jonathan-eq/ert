@@ -113,14 +113,25 @@ impl EE {
                 .spawn(move || self_clone.listen_for_messages())
                 .unwrap()
         };
-        //let process_event_buffer_thread = {
-        //    let self_clone = Arc::clone(&main_clone);
-        //    thread::spawn(move || self_clone.process_event_buffer())
-        //};
+        let _batch_events_into_buffer_thread = {
+            let self_clone = Arc::clone(&main_clone);
+            thread::Builder::new()
+                .name("batch_events_into_buffer_thread".to_string())
+                .spawn(move || self_clone._batch_events_into_buffer())
+                .unwrap()
+        };
+        let process_event_buffer_thread = {
+            let self_clone = Arc::clone(&main_clone);
+            thread::Builder::new()
+                .name("process_event_buffer_thread".to_string())
+                .spawn(move || self_clone.process_event_buffer())
+                .unwrap()
+        };
 
         //let _ = heartbeat_thread.join();
         let _ = listen_for_messages_thread.join();
-        //let _ = process_event_buffer_thread.join();
+        let _ = _batch_events_into_buffer_thread.join();
+        let _ = process_event_buffer_thread.join();
         Ok(())
     }
 }

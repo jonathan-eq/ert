@@ -3,7 +3,12 @@ use std::sync::Arc;
 use crate::{events::snapshot_event::EESnapshotUpdateEvent, EE};
 
 impl EE {
-    pub fn handle_dispatch(self: &Arc<Self>, dealer_id: &String, frame: String) {
+    pub fn handle_dispatch(
+        self: &Arc<Self>,
+        dispatcher_zmq_id: Vec<u8>,
+        dealer_id: &String,
+        frame: &String,
+    ) {
         if frame == "CONNECT" {
             self._dispatchers_connected
                 .write()
@@ -15,6 +20,7 @@ impl EE {
                 .unwrap()
                 .remove(dealer_id);
         } else {
+            println!("INVOKING EVENT FROM DISPATCHER HANDLER");
             self._handle_event_from_dispatcher(frame)
         }
     }
@@ -23,7 +29,7 @@ impl EE {
         self: &Arc<Self>,
         sender_identity: Vec<u8>,
         client_id: &String,
-        frame: String,
+        frame: &String,
     ) {
         if frame == "CONNECT" {
             println!("HANDLIGN CONNECT");

@@ -44,10 +44,13 @@ impl EE {
         }
     }
     pub fn _fm_handler(self: &Arc<Self>, events: &Vec<Event>) {
+        println!("FM_HANDLER GOT INVOKED!");
         let update_snapshot_event = self._main_snapshot.read().unwrap().update_snapshot(&events);
+        println!("{:#?}", update_snapshot_event);
         self._append_message(update_snapshot_event);
     }
     fn _append_message(self: &Arc<Self>, snapshot_update_event: EnsembleSnapshot) {
+        println!("APPEND MESSAGE GOT INVOKED!");
         let event = EESnapshotUpdateEvent {
             snapshot: snapshot_update_event,
             ensemble: self._ensemble_id.to_string().clone(),

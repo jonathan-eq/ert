@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 pub trait Status {
     const STATUS: &'static str;
 }
-#[derive(Clone, Serialize)]
+#[derive(Clone, Serialize, Debug)]
 pub struct FMStepSnapshot {
     pub status: Option<String>,
     pub start_time: Option<DateTime<Utc>>,

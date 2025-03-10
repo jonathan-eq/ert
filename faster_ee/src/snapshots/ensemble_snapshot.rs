@@ -13,7 +13,7 @@ use crate::update_field_if_set;
 
 struct ForwardModelStepChecksum;
 
-#[derive(Serialize, Clone)]
+#[derive(Serialize, Clone, Debug)]
 pub struct EnsembleSnapshot {
     _realization_snapshots: HashMap<RealId, RealizationSnapshot>,
     _fm_step_snapshots: HashMap<(RealId, FmStepId), FMStepSnapshot>,
