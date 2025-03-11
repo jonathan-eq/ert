@@ -10,7 +10,7 @@ use crate::{
 
 use super::fm_step_snapshot::FMStepSnapshot;
 
-#[derive(Clone, Serialize, Debug)]
+#[derive(Clone, Serialize, Debug, PartialEq)]
 pub struct RealizationSnapshot {
     pub status: Option<String>,
     pub active: Option<bool>,

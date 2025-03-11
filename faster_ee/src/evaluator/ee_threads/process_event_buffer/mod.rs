@@ -1,4 +1,5 @@
 pub mod event_handlers;
+mod test;
 use std::{sync::Arc, thread, time::Duration};
 
 use super::DestinationHandler;

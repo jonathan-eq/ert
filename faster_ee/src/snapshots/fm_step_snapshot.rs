@@ -2,7 +2,7 @@ use crate::{events::dispatcher_event::FMEvent, update_field_if_set};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Serialize, Debug)]
+#[derive(Clone, Serialize, Debug, PartialEq)]
 pub struct FMStepSnapshot {
     pub status: Option<String>,
     pub start_time: Option<DateTime<Utc>>,

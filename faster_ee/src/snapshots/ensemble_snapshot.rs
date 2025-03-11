@@ -13,12 +13,12 @@ use crate::update_field_if_set;
 
 struct ForwardModelStepChecksum;
 
-#[derive(Serialize, Clone, Debug)]
+#[derive(Serialize, Clone, Debug, PartialEq)]
 pub struct EnsembleSnapshot {
-    _realization_snapshots: HashMap<RealId, RealizationSnapshot>,
+    pub _realization_snapshots: HashMap<RealId, RealizationSnapshot>,
     #[serde(serialize_with = "serialize_tuple_keys")]
-    _fm_step_snapshots: HashMap<(RealId, FmStepId), FMStepSnapshot>,
-    _ensemble_state: Option<String>,
+    pub _fm_step_snapshots: HashMap<(RealId, FmStepId), FMStepSnapshot>,
+    pub _ensemble_state: Option<String>,
 }
 // Custom function to convert tuple keys to strings
 fn serialize_tuple_keys<S>(
@@ -170,5 +170,31 @@ impl EnsembleSnapshot {
             loop_snapshot = loop_snapshot.update_from_event(&event, Some(&self));
         }
         loop_snapshot
+    }
+
+    pub fn sync_before_serialize(&self) -> Self {
+        let mut self_clone = self.clone();
+        for ((real_id, fm_step_id), fm_step) in &self_clone._fm_step_snapshots {
+            // Ensure the realization snapshot exists
+            self_clone
+                ._realization_snapshots
+                .entry(real_id.clone())
+                .or_insert_with(|| {
+                    let mut snapshot = RealizationSnapshot::new();
+                    snapshot.fm_steps = Some(HashMap::new());
+                    snapshot
+                });
+
+            // Get a mutable reference to the realization snapshot
+            if let Some(realization_snapshot) = self_clone._realization_snapshots.get_mut(real_id) {
+                // Ensure fm_steps exists and insert the fm_step
+                realization_snapshot
+                    .fm_steps
+                    .get_or_insert_with(HashMap::new)
+                    .entry(fm_step_id.clone())
+                    .or_insert_with(|| fm_step.clone());
+            }
+        }
+        self_clone
     }
 }
