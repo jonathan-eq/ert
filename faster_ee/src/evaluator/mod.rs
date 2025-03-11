@@ -26,8 +26,8 @@ pub struct EE {
     _thread: Arc<Option<std::thread::JoinHandle<()>>>,
     address: Arc<String>,
     is_running: Arc<AtomicBool>,
-    _client_connected: Arc<RwLock<HashSet<String>>>, // Cannot use Bytes due to pyclass restrictions
-    _dispatchers_connected: Arc<RwLock<HashSet<String>>>,
+    _client_connected: Arc<RwLock<HashSet<Vec<u8>>>>, // Cannot use Bytes due to pyclass restrictions
+    _dispatchers_connected: Arc<RwLock<HashSet<Vec<u8>>>>,
     _events_to_send: Arc<SegQueue<QueueEvents>>,
     _batch_processing_queue: Arc<SegQueue<HashMap<DestinationHandler, Vec<Event>>>>,
     _events: Arc<SegQueue<DispatcherEvent>>,
@@ -127,11 +127,19 @@ impl EE {
                 .spawn(move || self_clone.process_event_buffer())
                 .unwrap()
         };
+        let publisher_thread = {
+            let self_clone = Arc::clone(&main_clone);
+            thread::Builder::new()
+                .name("process_event_buffer_thread".to_string())
+                .spawn(move || self_clone._publisher())
+                .unwrap()
+        };
 
         //let _ = heartbeat_thread.join();
         let _ = listen_for_messages_thread.join();
         let _ = _batch_events_into_buffer_thread.join();
         let _ = process_event_buffer_thread.join();
+        let _ = publisher_thread.join();
         Ok(())
     }
 }

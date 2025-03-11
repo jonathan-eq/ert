@@ -33,12 +33,6 @@ impl EE {
 
             // If we received a message, process it
             if let Some(inbound_msg) = inbound_msg {
-                println!("GOT MESSAGE!");
-
-                for part in &inbound_msg {
-                    println!("'{}'", String::from_utf8_lossy(part));
-                }
-                println!("Length was {}", &inbound_msg.len());
                 // Clone message parts so we don't hold references
                 let sender = inbound_msg.get(0).unwrap().clone();
                 let sender_id = inbound_msg.get(1).unwrap().clone();
@@ -56,13 +50,13 @@ impl EE {
                 // Decode message
                 let decoded_sender = String::from_utf8_lossy(&sender_id).to_string();
                 let decoded_payload = String::from_utf8_lossy(&payload).to_string();
-                println!("ESTABLISHED CONNECTION WITH {}", decoded_sender);
+                //println!("ESTABLISHED CONNECTION WITH {}", decoded_sender);
 
                 // Handle message
                 if decoded_sender.starts_with("client") {
-                    self.handle_client(sender, &decoded_sender, &decoded_payload);
+                    self.handle_client(&sender, &decoded_sender, &decoded_payload);
                 } else if decoded_sender.starts_with("dispatch") {
-                    self.handle_dispatch(sender, &decoded_sender, &decoded_payload);
+                    self.handle_dispatch(&sender, &decoded_sender, &decoded_payload);
                 } else {
                     eprintln!("Received msg from unknown sender '{}'", &decoded_sender);
                 }

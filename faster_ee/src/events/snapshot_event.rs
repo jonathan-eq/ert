@@ -4,7 +4,7 @@ use crate::snapshots::EnsembleSnapshot;
 
 pub const EE_SNAPSHOT_UPDATE: &str = "ee.snapshot_update";
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 #[serde(tag = "ee.snapshot")]
 pub struct EESnapshotUpdateEvent {
     pub snapshot: EnsembleSnapshot,

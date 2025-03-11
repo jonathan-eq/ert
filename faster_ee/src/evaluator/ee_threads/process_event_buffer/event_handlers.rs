@@ -11,8 +11,7 @@ use super::EE;
 impl EE {
     pub fn _started_handler(self: &Arc<Self>, events: &Vec<Event>) {
         if self._ensemble_status.to_string() != "Failed" {
-            let update_snapshot_event = self._main_snapshot.read().unwrap().update_snapshot(events);
-            self._append_message(update_snapshot_event);
+            self._create_update_snapshot_and_apply_to_main_snapshot(events);
         }
     }
     pub fn _failed_handler(self: &Arc<Self>, events: &Vec<Event>) {
@@ -21,8 +20,7 @@ impl EE {
         {
             return;
         }
-        let snapshot_update_event = self._main_snapshot.read().unwrap().update_snapshot(events);
-        self._append_message(snapshot_update_event);
+        self._create_update_snapshot_and_apply_to_main_snapshot(events);
         self._signal_cancel();
     }
     pub fn _signal_cancel(self: &Arc<Self>) {
@@ -32,25 +30,31 @@ impl EE {
         if self._ensemble_status.to_string() == "Failed" {
             return;
         }
-        let snapshot_update_event = self._main_snapshot.read().unwrap().update_snapshot(events);
-        self._append_message(snapshot_update_event);
+        self._create_update_snapshot_and_apply_to_main_snapshot(events);
     }
     pub fn _cancelled_handler(self: &Arc<Self>, events: &Vec<Event>) {
         if self._ensemble_status.to_string() != "FAILED" {
-            let update_snapshot_event =
-                self._main_snapshot.read().unwrap().update_snapshot(&events);
-            self._append_message(update_snapshot_event);
+            self._create_update_snapshot_and_apply_to_main_snapshot(events);
             self.stop();
         }
     }
     pub fn _fm_handler(self: &Arc<Self>, events: &Vec<Event>) {
-        println!("FM_HANDLER GOT INVOKED!");
-        let update_snapshot_event = self._main_snapshot.read().unwrap().update_snapshot(&events);
-        println!("{:#?}", update_snapshot_event);
+        self._create_update_snapshot_and_apply_to_main_snapshot(events);
+    }
+
+    pub fn _create_update_snapshot_and_apply_to_main_snapshot(
+        self: &Arc<Self>,
+        events: &Vec<Event>,
+    ) {
+        let update_snapshot_event = self._main_snapshot.read().unwrap().update_snapshot(events);
+        self._main_snapshot
+            .write()
+            .unwrap()
+            .update_from(&update_snapshot_event);
         self._append_message(update_snapshot_event);
     }
+
     fn _append_message(self: &Arc<Self>, snapshot_update_event: EnsembleSnapshot) {
-        println!("APPEND MESSAGE GOT INVOKED!");
         let event = EESnapshotUpdateEvent {
             snapshot: snapshot_update_event,
             ensemble: self._ensemble_id.to_string().clone(),

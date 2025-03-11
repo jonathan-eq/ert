@@ -1,9 +1,8 @@
 pub mod event_handlers;
 use std::{sync::Arc, thread, time::Duration};
 
-use crate::EE;
-
 use super::DestinationHandler;
+use crate::EE;
 
 impl EE {
     pub fn process_event_buffer(self: Arc<Self>) {

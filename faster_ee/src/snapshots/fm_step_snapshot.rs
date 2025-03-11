@@ -2,9 +2,6 @@ use crate::{events::dispatcher_event::FMEvent, update_field_if_set};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-pub trait Status {
-    const STATUS: &'static str;
-}
 #[derive(Clone, Serialize, Debug)]
 pub struct FMStepSnapshot {
     pub status: Option<String>,
@@ -42,6 +39,7 @@ impl FMStepSnapshot {
     }
     pub fn update_from(&mut self, other_snapshot: &Self) {
         update_field_if_set!(self, other_snapshot, status);
+        update_field_if_set!(self, other_snapshot, index);
         update_field_if_set!(self, other_snapshot, cpu_seconds);
         update_field_if_set!(self, other_snapshot, current_memory_usage);
         update_field_if_set!(self, other_snapshot, max_memory_usage);
@@ -75,6 +73,7 @@ impl FMStepSnapshot {
                 self.error = event.error.clone();
             }
         }
+        println!("CONSTRUCTED FM STEP SNAPSHOT: {:?}", self);
         return self;
     }
 }

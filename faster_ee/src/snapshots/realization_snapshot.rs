@@ -18,6 +18,7 @@ pub struct RealizationSnapshot {
     pub end_time: Option<chrono::DateTime<Utc>>,
     pub exec_hosts: Option<String>,
     pub message: Option<String>,
+
     pub fm_steps: Option<HashMap<FmStepId, FMStepSnapshot>>, // Might be benefitial to use None rather than empty HashMap
 }
 
