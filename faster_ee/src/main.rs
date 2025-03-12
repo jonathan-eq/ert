@@ -1,8 +1,23 @@
+use chrono::Local;
+use env_logger::Builder;
+use faster_ee::EE;
+use std::io::Write;
 use std::sync::Arc;
 
-use faster_ee::EE;
+fn setup_logger() {
+    Builder::new().format(|buf, record| {
+        writeln!(
+            buf,
+            "{} [{}] - {}",
+            Local::now().format("%H:%M:%S"),
+            record.level(),
+            record.args()
+        )
+    });
+}
 
 fn main() {
+    setup_logger();
     let my_ee = EE::new(
         String::from("tcp://*:8889"),
         None,
