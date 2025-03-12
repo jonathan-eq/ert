@@ -1,7 +1,10 @@
 use std::{sync::Arc, thread, time::Duration};
 
+use serde::Serialize;
+
 use crate::{evaluator::QueueEvents, EE};
 pub const HEARTBEAT_TIMEOUT: Duration = Duration::from_secs(5);
+#[derive(Debug, Clone, Serialize)]
 pub struct HeartBeat {
     pub msg: String,
 }

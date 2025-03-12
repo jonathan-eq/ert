@@ -1,11 +1,32 @@
 use std::sync::Arc;
 
-use crate::{evaluator::EEFullSnapshotEvent, EE};
+use log::{debug, info, warn};
+
+use crate::{
+    evaluator::{EEFullSnapshotEvent, ZMQIdentity},
+    EE,
+};
 
 impl EE {
+    pub fn handle_ert(self: &Arc<Self>, ert_zmq_id: &ZMQIdentity, ert_id: &String, frame: &String) {
+        if frame == "CONNECT" {
+            _ = self
+                ._ert_identity
+                .write()
+                .unwrap()
+                .insert(ert_zmq_id.clone());
+            info!("CONNECTED {}", ert_id);
+        } else if frame == "DISCONNECT" {
+            *self._ert_identity.write().unwrap() = None;
+            info!("DISCONNECTED {}", ert_id);
+        } else {
+            log::warn!("GOT CRAZY EVENT FROM ERT: {frame}");
+        }
+    }
+
     pub fn handle_dispatch(
         self: &Arc<Self>,
-        dispatcher_zmq_id: &Vec<u8>,
+        dispatcher_zmq_id: &ZMQIdentity,
         dealer_id: &String,
         frame: &String,
     ) {
@@ -14,27 +35,25 @@ impl EE {
                 .write()
                 .unwrap()
                 .insert(dispatcher_zmq_id.clone());
-            println!("CONNECTED {}", dealer_id);
+            debug!("CONNECTED {}", dealer_id);
         } else if frame == "DISCONNECT" {
             self._dispatchers_connected
                 .write()
                 .unwrap()
                 .remove(dispatcher_zmq_id);
-            println!("DISCONNECTED {}", dealer_id);
+            debug!("DISCONNECTED {}", dealer_id);
         } else {
-            println!("INVOKING EVENT FROM DISPATCHER HANDLER");
             self._handle_event_from_dispatcher(frame)
         }
     }
 
     pub fn handle_client(
         self: &Arc<Self>,
-        sender_identity: &Vec<u8>,
+        sender_identity: &ZMQIdentity,
         client_id: &String,
         frame: &String,
     ) {
         if frame == "CONNECT" {
-            println!("HANDLIGN CONNECT");
             {
                 if self
                     ._client_connected
@@ -42,7 +61,7 @@ impl EE {
                     .unwrap()
                     .contains(sender_identity)
                 {
-                    eprintln!("Client '{}' wants to reconnect", client_id);
+                    warn!("Client '{}' wants to reconnect", client_id);
                 }
             }
 
@@ -51,32 +70,22 @@ impl EE {
                     .write()
                     .unwrap()
                     .insert(sender_identity.clone());
-                println!("CONNECTED {}", client_id);
+                debug!("CONNECTED {}", client_id);
             }
             let full_snapshot_event = EEFullSnapshotEvent::new(
                 self._main_snapshot.read().unwrap().clone(),
                 self._ensemble_id.to_string().clone(),
             );
-            //println!("{:?}", full_snapshot_event);
             {
-                let socket = self._router_socket.lock().unwrap();
-                socket
-                    .as_ref()
-                    .unwrap()
-                    .send_multipart(
-                        vec![
-                            &sender_identity,
-                            &vec![],
-                            &serde_json::to_string(&full_snapshot_event)
-                                .unwrap()
-                                .as_bytes()
-                                .to_vec(),
-                        ]
-                        .iter(),
-                        0,
-                    )
-                    .unwrap();
-                println!("SENT FULL SNAPSHOT!")
+                // might not need the extra block here. It was just to make sure the lock was released
+                self._send_bytes_to_identity(
+                    &sender_identity,
+                    &serde_json::to_string(&full_snapshot_event)
+                        .unwrap()
+                        .as_bytes()
+                        .to_vec(),
+                );
+                info!("SENT FULL SNAPSHOT!")
             }
         } else if frame == "DISCONNECT" {
             {
@@ -84,10 +93,9 @@ impl EE {
                     .write()
                     .unwrap()
                     .remove(sender_identity);
-                println!("DISCONNECTED {}", client_id);
+                debug!("DISCONNECTED {}", client_id);
             }
         } else {
-            println!("DONT KNOW WHAT I GOT {}", frame);
             self._handle_event_from_client(frame)
         }
     }

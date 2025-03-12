@@ -1,3 +1,4 @@
+use crate::events::dispatcher_event::checksum_event::ForwardModelStepChecksum;
 use crate::events::dispatcher_event::DispatcherEvent;
 
 use crate::events::Event;
@@ -5,6 +6,7 @@ use crate::events::Event;
 use crossbeam::queue::SegQueue;
 use ee_threads::do_heartbeat_clients::HeartBeat;
 use ee_threads::DestinationHandler;
+use log::{error, info};
 
 use crate::events::snapshot_event::*;
 use crate::snapshots::EnsembleSnapshot;
@@ -21,18 +23,20 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex, RwLock};
 use std::{collections::HashSet, thread, time::Duration};
 
+type ZMQIdentity = Vec<u8>;
 #[derive(Clone)]
 pub struct EE {
     _thread: Arc<Option<std::thread::JoinHandle<()>>>,
     address: Arc<String>,
     is_running: Arc<AtomicBool>,
-    _client_connected: Arc<RwLock<HashSet<Vec<u8>>>>, // Cannot use Bytes due to pyclass restrictions
-    _dispatchers_connected: Arc<RwLock<HashSet<Vec<u8>>>>,
+    _client_connected: Arc<RwLock<HashSet<ZMQIdentity>>>,
+    _dispatchers_connected: Arc<RwLock<HashSet<ZMQIdentity>>>,
+    _ert_identity: Arc<RwLock<Option<ZMQIdentity>>>,
     _events_to_send: Arc<SegQueue<QueueEvents>>,
     _batch_processing_queue: Arc<SegQueue<HashMap<DestinationHandler, Vec<Event>>>>,
     _events: Arc<SegQueue<DispatcherEvent>>,
     _router_socket: Arc<Mutex<Option<zmq::Socket>>>,
-    pub _ensemble_id: Arc<String>,
+    _ensemble_id: Arc<String>,
     _main_snapshot: Arc<RwLock<EnsembleSnapshot>>,
     _batching_interval: Arc<Duration>,
     _max_batch_size: Arc<i64>,
@@ -40,9 +44,11 @@ pub struct EE {
     server_curve: Arc<Option<(Vec<u8>, Vec<u8>)>>,
     is_socket_ready: Arc<AtomicBool>,
 }
+#[derive(Debug)]
 enum QueueEvents {
     HeartBeat(HeartBeat),
     EnsembleSnapshot(EESnapshotUpdateEvent),
+    Checksum(ForwardModelStepChecksum),
 }
 
 impl EE {
@@ -59,6 +65,7 @@ impl EE {
             is_running: Arc::new(AtomicBool::new(true)),
             _client_connected: Arc::new(RwLock::new(HashSet::new())),
             _dispatchers_connected: Arc::new(RwLock::new(HashSet::new())),
+            _ert_identity: Arc::new(RwLock::new(None)),
             _events_to_send: Arc::new(SegQueue::new()),
             _router_socket: Arc::new(Mutex::new(None)),
             _ensemble_id: Arc::new(ensemble_id),
@@ -77,10 +84,10 @@ impl EE {
     pub fn run(self: Arc<Self>) {
         match self._run() {
             Ok(_) => {
-                println!("SUCCEEDED AND FINISHED EE");
+                info!("SUCCEEDED AND FINISHED EE");
             }
             Err(inner_msg) => {
-                eprintln!("{}", inner_msg);
+                error!("{}", inner_msg);
             }
         }
     }
@@ -101,10 +108,7 @@ impl EE {
             let self_clone = Arc::clone(&main_clone);
             thread::spawn(move || self_clone._server())
         };
-        //let heartbeat_thread = {
-        //    let self_clone = Arc::clone(&main_clone);
-        //    thread::spawn(move || self_clone._do_heartbeat_clients())
-        //};
+
         let _ = server_thread.join();
         let listen_for_messages_thread = {
             let self_clone = Arc::clone(&main_clone);

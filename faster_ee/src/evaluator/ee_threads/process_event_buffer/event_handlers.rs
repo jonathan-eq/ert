@@ -1,5 +1,7 @@
 use std::sync::Arc;
 
+use log::error;
+
 use crate::{
     evaluator::QueueEvents,
     events::{snapshot_event::EESnapshotUpdateEvent, Event},
@@ -24,7 +26,7 @@ impl EE {
         self._signal_cancel();
     }
     pub fn _signal_cancel(self: &Arc<Self>) {
-        eprintln!("SIGNAL_CANCEL NOT IMPLEMENTED YET!");
+        error!("SIGNAL_CANCEL NOT IMPLEMENTED YET!");
     }
     pub fn _stopped_handler(self: &Arc<Self>, events: &Vec<Event>) {
         if self._ensemble_status.to_string() == "Failed" {

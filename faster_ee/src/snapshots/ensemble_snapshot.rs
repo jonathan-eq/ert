@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+use chrono::{DateTime, Utc};
+use log::error;
 use serde::{Deserialize, Serialize};
 
 use super::fm_step_snapshot::FMStepSnapshot;
@@ -11,7 +13,6 @@ use crate::events::snapshot_event::EESnapshotUpdateEvent;
 use crate::events::{types::*, Event};
 use crate::update_field_if_set;
 use crate::utils::is_none_or_empty;
-struct ForwardModelStepChecksum;
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct EnsembleSnapshot {
@@ -57,7 +58,7 @@ impl EnsembleSnapshot {
         };
     }
     pub fn merge_snapshot(&mut self, event: &EESnapshotUpdateEvent) {
-        println!("TRYING TO MERGE SNAPSHOT!");
+        error!("Merge snapshot not implemented yet");
     }
     pub fn update_fm_from_event(&mut self, event: &FMEvent) -> &mut Self {
         let mut mutate_snapshot = FMStepSnapshot::new();
@@ -146,7 +147,6 @@ impl EnsembleSnapshot {
     pub fn update_snapshot(&self, events: &Vec<Event>) -> EnsembleSnapshot {
         let mut snapshot_mutate_event: EnsembleSnapshot = Self::default();
         let update_snapshot = self._update_snapshot(&mut snapshot_mutate_event, &events);
-        println!("Created update_snapshot {:?}", update_snapshot);
         return update_snapshot.to_owned();
     }
     pub fn _update_snapshot<'a>(

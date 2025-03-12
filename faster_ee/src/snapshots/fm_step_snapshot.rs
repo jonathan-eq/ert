@@ -83,7 +83,6 @@ impl FMStepSnapshot {
                 self.error = event.error.clone();
             }
         }
-        println!("CONSTRUCTED FM STEP SNAPSHOT: {:?}", self);
         return self;
     }
 }

@@ -37,13 +37,15 @@ class ZMQClient:
 
 
 async def main():
+    ert = ZMQClient(b"ert-jonak")
+    await ert.connect()
     monitor = ZMQClient(b"client-jonak")
     await monitor.connect()
     dispatcher = ZMQClient(b"dispatcher-jonak")
     await dispatcher.send(
         json.dumps(
             {
-                "event_type": "forward_model.start",
+                "event_type": "forward_model_step.start",
                 "time": str(datetime.datetime.now(datetime.UTC)),
                 "fm_step": "1",
                 "real_id": "0",
@@ -53,9 +55,11 @@ async def main():
         ).encode("utf-8")
     )
     await asyncio.sleep(10)
+    await ert.disconnect()
     await dispatcher.disconnect()
     await monitor.disconnect()
     await asyncio.sleep(10)
+    ert.recv_task.cancel()
     monitor.recv_task.cancel()
     dispatcher.recv_task.cancel()
 

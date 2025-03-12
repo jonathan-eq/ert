@@ -1,5 +1,7 @@
 use std::sync::{atomic::Ordering, Arc};
 
+use log::info;
+
 use crate::EE;
 
 impl EE {
@@ -19,6 +21,6 @@ impl EE {
             *lock = Some(socket);
         }
         self.is_socket_ready.store(true, Ordering::SeqCst);
-        println!("FINISHED starting server");
+        info!("Server is ready");
     }
 }

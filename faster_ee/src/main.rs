@@ -5,15 +5,18 @@ use std::io::Write;
 use std::sync::Arc;
 
 fn setup_logger() {
-    Builder::new().format(|buf, record| {
-        writeln!(
-            buf,
-            "{} [{}] - {}",
-            Local::now().format("%H:%M:%S"),
-            record.level(),
-            record.args()
-        )
-    });
+    Builder::new()
+        .filter_level(log::LevelFilter::Debug)
+        .format(|buf, record| {
+            writeln!(
+                buf,
+                "{} [{}] - {}",
+                Local::now().format("%H:%M:%S"),
+                record.level(),
+                record.args()
+            )
+        })
+        .init();
 }
 
 fn main() {

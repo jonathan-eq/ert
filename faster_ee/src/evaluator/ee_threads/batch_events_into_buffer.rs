@@ -1,8 +1,10 @@
 use std::{collections::HashMap, sync::Arc, thread, time::Duration};
 
 use chrono::Utc;
+use log::{debug, warn};
 
 use crate::{
+    evaluator::ee_threads::listen_for_messages::event_handlers::get_type_name,
     events::{
         dispatcher_event::{DispatcherEvent, FMEvent},
         Event,
@@ -49,7 +51,7 @@ impl EE {
                                 .push(Event::FMEvent(FMEvent::ForwardModelStepFailure(event)));
                         }
                         _ => {
-                            println!("Not handling this type of event yet {:?}", inner_event);
+                            warn!("Not handling this type of event yet {:?}", inner_event);
                         }
                     },
                     None => {
@@ -59,12 +61,12 @@ impl EE {
                 }
             }
             if batch.len() > 0 {
-                println!("ADDING EVENT TO BATCHING QUEUE");
+                debug!("Adding batch of {} events to processing queue", batch.len());
                 self._batch_processing_queue.push(batch);
             }
             if self._events.len() > 500 {
-                println!(
-                    "There is a lot of events left in queue ({})",
+                warn!(
+                    "There are a lot of events left in queue ({})",
                     self._events.len()
                 )
             }
