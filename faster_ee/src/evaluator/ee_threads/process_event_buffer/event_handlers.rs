@@ -51,7 +51,9 @@ impl EE {
             .write()
             .unwrap()
             .update_from(&update_snapshot_event);
-        self._append_message(update_snapshot_event);
+        let synced_snapshot =
+            update_snapshot_event.create_new_with_synced_fm_steps_into_realizations(); // I am not sure why this is done after updating the main snapshot...
+        self._append_message(synced_snapshot);
     }
 
     fn _append_message(self: &Arc<Self>, snapshot_update_event: EnsembleSnapshot) {

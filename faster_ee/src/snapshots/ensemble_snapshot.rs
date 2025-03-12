@@ -10,7 +10,7 @@ use crate::events::ensemble_event::EnsembleEvent;
 use crate::events::snapshot_event::EESnapshotUpdateEvent;
 use crate::events::{types::*, Event};
 use crate::update_field_if_set;
-
+use crate::utils::is_none_or_empty;
 struct ForwardModelStepChecksum;
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
@@ -20,23 +20,10 @@ pub struct EnsembleSnapshot {
     pub _realization_snapshots: HashMap<RealId, RealizationSnapshot>,
     #[serde(skip_serializing)]
     pub _fm_step_snapshots: HashMap<(RealId, FmStepId), FMStepSnapshot>,
+    #[serde(skip_serializing_if = "is_none_or_empty")]
     pub _ensemble_state: Option<String>,
 }
-// Custom function to convert tuple keys to strings
-fn serialize_tuple_keys<S>(
-    value: &HashMap<(FmStepId, String), FMStepSnapshot>,
-    serializer: S,
-) -> Result<S::Ok, S::Error>
-where
-    S: serde::Serializer,
-{
-    let map: HashMap<String, &FMStepSnapshot> = value
-        .iter()
-        .map(|((k1, k2), v)| (format!("({}, {})", k1, k2), v))
-        .collect();
 
-    map.serialize(serializer)
-}
 impl Default for EnsembleSnapshot {
     fn default() -> Self {
         EnsembleSnapshot {
@@ -159,7 +146,7 @@ impl EnsembleSnapshot {
     pub fn update_snapshot(&self, events: &Vec<Event>) -> EnsembleSnapshot {
         let mut snapshot_mutate_event: EnsembleSnapshot = Self::default();
         let update_snapshot = self._update_snapshot(&mut snapshot_mutate_event, &events);
-
+        println!("Created update_snapshot {:?}", update_snapshot);
         return update_snapshot.to_owned();
     }
     pub fn _update_snapshot<'a>(
@@ -174,7 +161,7 @@ impl EnsembleSnapshot {
         loop_snapshot
     }
 
-    pub fn sync_before_serialize(&self) -> Self {
+    pub fn create_new_with_synced_fm_steps_into_realizations(&self) -> Self {
         let mut self_clone = self.clone();
         for ((real_id, fm_step_id), fm_step) in &self_clone._fm_step_snapshots {
             // Ensure the realization snapshot exists

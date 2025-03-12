@@ -1,19 +1,29 @@
+use crate::utils::is_none_or_empty;
 use crate::{events::dispatcher_event::FMEvent, update_field_if_set};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-
 #[derive(Clone, Serialize, Debug, PartialEq)]
 pub struct FMStepSnapshot {
+    #[serde(skip_serializing_if = "is_none_or_empty")]
     pub status: Option<String>,
     pub start_time: Option<DateTime<Utc>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub end_time: Option<DateTime<Utc>>,
+    #[serde(skip_serializing_if = "is_none_or_empty")]
     pub index: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub current_memory_usage: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub max_memory_usage: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub cpu_seconds: Option<f64>,
+    #[serde(skip_serializing_if = "is_none_or_empty")]
     pub name: Option<String>,
+    #[serde(skip_serializing_if = "is_none_or_empty")]
     pub error: Option<String>,
+    #[serde(skip_serializing_if = "is_none_or_empty")]
     pub stdout: Option<String>,
+    #[serde(skip_serializing_if = "is_none_or_empty")]
     pub stderr: Option<String>,
 }
 impl Default for FMStepSnapshot {
