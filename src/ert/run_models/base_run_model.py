@@ -16,6 +16,7 @@ from pathlib import Path
 from queue import SimpleQueue
 from typing import TYPE_CHECKING, Any, cast
 
+from ert.ensemble_evaluator.minimal_evaluator import EvaluatorClient
 import numpy as np
 
 from _ert.events import EESnapshot, EESnapshotUpdate, EETerminated, Event
@@ -560,16 +561,18 @@ class BaseRunModel(ABC):
             self._end_queue.get()
             return []
         ee_ensemble = self._build_ensemble(run_args, ensemble.experiment_id)
-        evaluator = EnsembleEvaluator(
-            ee_ensemble,
-            ee_config,
-        )
-        evaluator_task = asyncio.create_task(
-            evaluator.run_and_get_successful_realizations()
-        )
-        await evaluator._server_started
-        if not (await self.run_monitor(ee_config, ensemble.iteration)):
-            return []
+        #evaluator = EnsembleEvaluator(
+        #    ee_ensemble,
+        #    ee_config,
+        #)sour
+        async with EvaluatorClient(ee_ensemble, ee_config) as evaluator_client:
+            evaluator_task = asyncio.create_task(
+                evaluator_client.run_and_get_successful_realizations()
+            )
+        
+            if not (await self.run_monitor(ee_config, ensemble.iteration)):
+                return []
+            await evaluator_task
 
         logger.debug("observed that model was finished, waiting tasks completion...")
         # The model has finished, we indicate this by sending a DONE

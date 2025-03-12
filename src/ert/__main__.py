@@ -7,7 +7,10 @@ import logging.config
 import multiprocessing
 import os
 import re
-import resource
+import sys
+if sys.platform != "win32":
+    
+    import resource
 import sys
 import warnings
 from argparse import ArgumentParser, ArgumentTypeError
@@ -547,6 +550,8 @@ def ert_parser(parser: ArgumentParser | None, args: Sequence[str]) -> Namespace:
 
 
 def log_process_usage() -> None:
+    if sys.platform == "win32":
+        return
     try:
         usage = resource.getrusage(resource.RUSAGE_SELF)
         max_rss = ert.shared.status.utils.get_ert_memory_usage()

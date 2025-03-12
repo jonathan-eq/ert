@@ -57,8 +57,8 @@ class Scheduler:
         self,
         driver: Driver,
         realizations: Sequence[Realization] | None = None,
-        manifest_queue: asyncio.Queue[Event] | None = None,
-        ensemble_evaluator_queue: asyncio.Queue[Event] | None = None,
+        eval_to_scheduler_queue: asyncio.Queue[Event] | None = None,
+        scheduler_to_eval_queue: asyncio.Queue[Event] | None = None,
         *,
         max_submit: int = 1,
         max_running: int = 1,
@@ -68,8 +68,8 @@ class Scheduler:
         ee_token: str | None = None,
     ) -> None:
         self.driver = driver
-        self._ensemble_evaluator_queue = ensemble_evaluator_queue
-        self._manifest_queue = manifest_queue
+        self.scheduler_to_eval_queue = scheduler_to_eval_queue
+        self._eval_to_scheduler_queue = eval_to_scheduler_queue
 
         self._job_tasks: MutableMapping[int, asyncio.Task[None]] = {}
 
@@ -166,20 +166,20 @@ class Scheduler:
         return counts
 
     async def _checksum_consumer(self) -> None:
-        if self._manifest_queue is None:
+        if self._eval_to_scheduler_queue is None:
             return
         while True:
-            event = await self._manifest_queue.get()
+            event = await self._eval_to_scheduler_queue.get()
             if type(event) is ForwardModelStepChecksum:
                 self.checksum.update(event.checksums)
-            self._manifest_queue.task_done()
+            self._eval_to_scheduler_queue.task_done()
 
     async def _publisher(self) -> None:
-        if self._ensemble_evaluator_queue is None:
+        if self.scheduler_to_eval_queue is None:
             return
         while True:
             event = await self._events.get()
-            await self._ensemble_evaluator_queue.put(event)
+            await self.scheduler_to_eval_queue.put(event)
             self._events.task_done()
 
     def add_dispatch_information_to_jobs_file(self) -> None:
@@ -216,7 +216,7 @@ class Scheduler:
                         raise task_exception
 
             if not self.is_active():
-                if self._ensemble_evaluator_queue is not None:
+                if self.scheduler_to_eval_queue is not None:
                     # if there is a consumer
                     # we wait till the event queue is processed
                     await self._events.join()

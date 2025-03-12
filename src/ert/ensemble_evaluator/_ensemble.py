@@ -208,8 +208,8 @@ class LegacyEnsemble:
     async def evaluate(
         self,
         config: EvaluatorServerConfig,
-        scheduler_queue: asyncio.Queue[Event] | None = None,
-        manifest_queue: asyncio.Queue[Event] | None = None,
+        scheduler_to_eval_queue: asyncio.Queue[Event] | None = None,
+        eval_to_scheduler_queue: asyncio.Queue[Event] | None = None,
     ) -> None:
         self._config = config
         ce_unary_send_method_name = "_ce_unary_send"
@@ -225,8 +225,8 @@ class LegacyEnsemble:
         try:
             await self._evaluate_inner(
                 event_unary_send=getattr(self, ce_unary_send_method_name),
-                scheduler_queue=scheduler_queue,
-                manifest_queue=manifest_queue,
+                scheduler_to_eval_queue=scheduler_to_eval_queue,
+                eval_to_scheduler_queue=eval_to_scheduler_queue,
             )
         except asyncio.CancelledError:
             print("Cancelling evaluator task!")
@@ -234,8 +234,8 @@ class LegacyEnsemble:
     async def _evaluate_inner(  # pylint: disable=too-many-branches
         self,
         event_unary_send: Callable[[Event], Awaitable[None]],
-        scheduler_queue: asyncio.Queue[Event] | None = None,
-        manifest_queue: asyncio.Queue[Event] | None = None,
+        scheduler_to_eval_queue: asyncio.Queue[Event] | None = None,
+        eval_to_scheduler_queue: asyncio.Queue[Event] | None = None,
     ) -> None:
         """
         This (inner) coroutine does the actual work of evaluating the ensemble. It
@@ -261,8 +261,8 @@ class LegacyEnsemble:
             self._scheduler = Scheduler(
                 driver,
                 self.active_reals,
-                manifest_queue,
-                scheduler_queue,
+                eval_to_scheduler_queue,
+                scheduler_to_eval_queue,
                 max_submit=self._queue_config.max_submit,
                 max_running=self._queue_config.max_running,
                 submit_sleep=self._queue_config.submit_sleep,

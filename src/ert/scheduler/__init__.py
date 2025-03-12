@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from os import getuid
-from pwd import getpwuid
+#from os import getuid
+#from pwd import getpwuid
 from typing import TYPE_CHECKING
 
 from ert.config.parsing.queue_system import QueueSystem
@@ -29,8 +29,8 @@ def create_driver(queue_options: QueueOptions) -> Driver:
         case QueueSystem.SLURM:
             return SlurmDriver(
                 **dict(
-                    {"user": getpwuid(getuid()).pw_name},
-                    **queue_options.driver_options,
+                    #{"user": getpwuid(getuid()).pw_name},
+                    #**queue_options.driver_options,
                 )
             )
     raise NotImplementedError(

@@ -74,7 +74,7 @@ def _raise_on_main_thread(exception: BaseException) -> None:
     # something has happened. SIGUSR1 is a user-defined signal. Unlike SIGABRT
     # where the handler must eventually abort, we are allowed to continue
     # operating as normal after handling SIGUSR1.
-    os.kill(os.getpid(), signal.SIGUSR1)
+    os.kill(os.getpid(), signal.SIGINT)
 
 
 def _handler(signum: int, frametype: FrameType | None) -> None:
@@ -90,5 +90,5 @@ def set_signal_handler() -> None:
     if _can_raise:
         return
 
-    signal.signal(signal.SIGUSR1, _handler)
+    signal.signal(signal.SIGINT, _handler)
     _can_raise = True

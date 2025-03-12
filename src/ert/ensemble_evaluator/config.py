@@ -45,9 +45,9 @@ class EvaluatorServerConfig:
                 will_close_then_reopen_socket=True,
             )
             self.host, self.router_port = self._socket_handle.getsockname()
-            self.url = f"tcp://{self.host}:{self.router_port}"
+            self.url = "tcp://localhost:8888"#f"tcp://{self.host}:{self.router_port}"
 
-        if use_token:
+        if use_token and False:
             self.server_public_key, self.server_secret_key = zmq.curve_keypair()
             self.token = self.server_public_key.decode("utf-8")
 

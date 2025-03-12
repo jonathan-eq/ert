@@ -51,12 +51,13 @@ class Id:
     EE_TERMINATED_TYPE = Literal["ee.terminated"]
     EE_USER_CANCEL_TYPE = Literal["ee.user_cancel"]
     EE_USER_DONE_TYPE = Literal["ee.user_done"]
+    EE_DONE_TYPE = Literal["ee.done"]
     EE_SNAPSHOT: Final = "ee.snapshot"
     EE_SNAPSHOT_UPDATE: Final = "ee.snapshot_update"
     EE_TERMINATED: Final = "ee.terminated"
     EE_USER_CANCEL: Final = "ee.user_cancel"
     EE_USER_DONE: Final = "ee.user_done"
-
+    EE_DONE: Final = "ee.done"
 
 class BaseEvent(BaseModel):
     model_config = ConfigDict(strict=True, extra="forbid")
@@ -180,6 +181,9 @@ class EEUserDone(BaseEvent):
     event_type: Id.EE_USER_DONE_TYPE = Id.EE_USER_DONE
     monitor: str
 
+class EEDone(BaseEvent):
+    event_type: Id.EE_DONE_TYPE = Id.EE_DONE
+
 
 FMEvent = (
     ForwardModelStepStart
@@ -203,6 +207,7 @@ EnsembleEvent = EnsembleStarted | EnsembleSucceeded | EnsembleFailed | EnsembleC
 EEEvent = EESnapshot | EESnapshotUpdate | EETerminated | EEUserCancel | EEUserDone
 
 Event = FMEvent | ForwardModelStepChecksum | RealizationEvent | EEEvent | EnsembleEvent
+EvaluatorEvents = ForwardModelStepChecksum | EESnapshot | EESnapshotUpdate | EEDone
 
 DispatchEvent = FMEvent | ForwardModelStepChecksum | RealizationEvent | EnsembleEvent
 
@@ -210,12 +215,12 @@ _DISPATCH_EVENTS_ANNOTATION = Annotated[
     DispatchEvent, Field(discriminator="event_type")
 ]
 _ALL_EVENTS_ANNOTATION = Annotated[Event, Field(discriminator="event_type")]
-
+_EVALUATOR_EVENTS_ANNOTATION = Annotated[EvaluatorEvents, Field(discriminator="event_type")]
 DispatchEventAdapter: TypeAdapter[DispatchEvent] = TypeAdapter(
     _DISPATCH_EVENTS_ANNOTATION
 )
 EventAdapter: TypeAdapter[Event] = TypeAdapter(_ALL_EVENTS_ANNOTATION)
-
+EvaluatorEventsAdapter: TypeAdapter[EvaluatorEvents] = TypeAdapter(_EVALUATOR_EVENTS_ANNOTATION)
 
 def dispatch_event_from_json(raw_msg: str | bytes) -> DispatchEvent:
     return DispatchEventAdapter.validate_json(raw_msg)
@@ -224,6 +229,8 @@ def dispatch_event_from_json(raw_msg: str | bytes) -> DispatchEvent:
 def event_from_json(raw_msg: str | bytes) -> Event:
     return EventAdapter.validate_json(raw_msg)
 
+def event_from_json_from_evaluator(raw_msg: str|bytes) -> EvaluatorEvents:
+    return EvaluatorEventsAdapter.validate_json(raw_msg)
 
 def event_from_dict(dict_msg: dict[str, Any]) -> Event:
     return EventAdapter.validate_python(dict_msg)

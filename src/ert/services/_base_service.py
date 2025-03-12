@@ -10,7 +10,12 @@ import threading
 from collections.abc import Callable, Mapping, Sequence
 from logging import Logger, getLogger
 from pathlib import Path
-from select import PIPE_BUF, select
+
+if sys.platform != "win32":
+    from select import PIPE_BUF, select
+else:
+    PIPE_BUF = 4096
+    from select import select
 from subprocess import Popen, TimeoutExpired
 from time import sleep
 from types import FrameType
