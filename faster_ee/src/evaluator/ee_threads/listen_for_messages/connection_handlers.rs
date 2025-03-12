@@ -53,10 +53,10 @@ impl EE {
                     .insert(sender_identity.clone());
                 println!("CONNECTED {}", client_id);
             }
-            let full_snapshot_event = EEFullSnapshotEvent {
-                snapshot: self._main_snapshot.read().unwrap().clone(),
-                ensemble: self._ensemble_id.to_string().clone(),
-            };
+            let full_snapshot_event = EEFullSnapshotEvent::new(
+                self._main_snapshot.read().unwrap().clone(),
+                self._ensemble_id.to_string().clone(),
+            );
             //println!("{:?}", full_snapshot_event);
             {
                 let socket = self._router_socket.lock().unwrap();

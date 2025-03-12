@@ -55,10 +55,10 @@ impl EE {
     }
 
     fn _append_message(self: &Arc<Self>, snapshot_update_event: EnsembleSnapshot) {
-        let event = EESnapshotUpdateEvent {
-            snapshot: snapshot_update_event,
-            ensemble: self._ensemble_id.to_string().clone(),
-        };
+        let event = EESnapshotUpdateEvent::new(
+            snapshot_update_event,
+            self._ensemble_id.to_string().clone(),
+        );
         self._events_to_send
             .push(QueueEvents::EnsembleSnapshot(event));
     }
