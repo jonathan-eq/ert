@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     events::types::{FmStepId, RealId},
-    update_field_if_set,
+    update_field_if_not_empty, update_field_if_set,
 };
 
 use super::fm_step_snapshot::FMStepSnapshot;
@@ -18,8 +18,8 @@ pub struct RealizationSnapshot {
     pub end_time: Option<chrono::DateTime<Utc>>,
     pub exec_hosts: Option<String>,
     pub message: Option<String>,
-
-    pub fm_steps: Option<HashMap<FmStepId, FMStepSnapshot>>, // Might be benefitial to use None rather than empty HashMap
+    #[serde(skip_serializing_if = "HashMap::is_empty")]
+    pub fm_steps: HashMap<FmStepId, FMStepSnapshot>, // Might be benefitial to use None rather than empty HashMap
 }
 
 impl RealizationSnapshot {
@@ -31,7 +31,7 @@ impl RealizationSnapshot {
             end_time: None,
             exec_hosts: None,
             message: None,
-            fm_steps: None,
+            fm_steps: HashMap::new(),
         }
     }
     pub fn update_from_event(&mut self, event: &RealizationEvent) -> &mut Self {
@@ -60,7 +60,7 @@ impl RealizationSnapshot {
         update_field_if_set!(self, other_snapshot, active);
         update_field_if_set!(self, other_snapshot, end_time);
         update_field_if_set!(self, other_snapshot, exec_hosts);
-        update_field_if_set!(self, other_snapshot, fm_steps); // This will probably cause a bug as it will just overwrite the hashmap rather than merge them
+        update_field_if_not_empty!(self, other_snapshot, fm_steps);
         update_field_if_set!(self, other_snapshot, message);
         update_field_if_set!(self, other_snapshot, start_time);
         update_field_if_set!(self, other_snapshot, status);

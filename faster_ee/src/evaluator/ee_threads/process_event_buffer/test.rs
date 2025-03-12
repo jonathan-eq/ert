@@ -76,7 +76,7 @@ mod tests {
                             exec_hosts: None,
                             status: None,
                             message: None,
-                            fm_steps: Some(my_map),
+                            fm_steps: my_map,
                         };
 
                         instance

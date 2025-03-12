@@ -13,10 +13,12 @@ use crate::update_field_if_set;
 
 struct ForwardModelStepChecksum;
 
-#[derive(Serialize, Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct EnsembleSnapshot {
+    #[serde(rename = "reals")]
+    #[serde(skip_serializing_if = "HashMap::is_empty")]
     pub _realization_snapshots: HashMap<RealId, RealizationSnapshot>,
-    #[serde(serialize_with = "serialize_tuple_keys")]
+    #[serde(skip_serializing)]
     pub _fm_step_snapshots: HashMap<(RealId, FmStepId), FMStepSnapshot>,
     pub _ensemble_state: Option<String>,
 }
@@ -115,7 +117,7 @@ impl EnsembleSnapshot {
         for (fm_step_id, source_fm_step_snapshot) in source_snapshot
             ._realization_snapshots
             .get(&event.get_real_id())
-            .and_then(|realsnapshot| realsnapshot.fm_steps.as_ref())
+            .and_then(|realsnapshot| Some(&realsnapshot.fm_steps))
             .unwrap_or(&HashMap::new())
         {
             if let Some(status_msg) = &source_fm_step_snapshot.status {
@@ -181,7 +183,7 @@ impl EnsembleSnapshot {
                 .entry(real_id.clone())
                 .or_insert_with(|| {
                     let mut snapshot = RealizationSnapshot::new();
-                    snapshot.fm_steps = Some(HashMap::new());
+                    snapshot.fm_steps = HashMap::new();
                     snapshot
                 });
 
@@ -190,7 +192,6 @@ impl EnsembleSnapshot {
                 // Ensure fm_steps exists and insert the fm_step
                 realization_snapshot
                     .fm_steps
-                    .get_or_insert_with(HashMap::new)
                     .entry(fm_step_id.clone())
                     .or_insert_with(|| fm_step.clone());
             }

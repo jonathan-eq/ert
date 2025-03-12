@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::{events::snapshot_event::EESnapshotUpdateEvent, EE};
+use crate::{evaluator::EEFullSnapshotEvent, EE};
 
 impl EE {
     pub fn handle_dispatch(
@@ -53,7 +53,7 @@ impl EE {
                     .insert(sender_identity.clone());
                 println!("CONNECTED {}", client_id);
             }
-            let full_snapshot_event = EESnapshotUpdateEvent {
+            let full_snapshot_event = EEFullSnapshotEvent {
                 snapshot: self._main_snapshot.read().unwrap().clone(),
                 ensemble: self._ensemble_id.to_string().clone(),
             };
