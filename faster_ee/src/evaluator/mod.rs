@@ -134,12 +134,20 @@ impl EE {
                 .spawn(move || self_clone._publisher())
                 .unwrap()
         };
+        let heartbeat_thread = {
+            let clone = Arc::clone(&main_clone);
+            thread::Builder::new()
+                .name("heartbeat_thread".to_string())
+                .spawn(move || clone._do_heartbeat_clients())
+                .unwrap()
+        };
 
         //let _ = heartbeat_thread.join();
         let _ = listen_for_messages_thread.join();
         let _ = _batch_events_into_buffer_thread.join();
         let _ = process_event_buffer_thread.join();
         let _ = publisher_thread.join();
+        let _ = heartbeat_thread.join();
         Ok(())
     }
 }
