@@ -11,7 +11,7 @@ use log::{error, info};
 use crate::events::snapshot_event::*;
 use crate::snapshots::EnsembleSnapshot;
 mod ee_threads;
-pub mod handlers;
+
 /// A Python module implemented in Rust.
 // #[pymodule]
 // fn faster_ee(m: &Bound<'_, PyModule>) -> PyResult<()> {
@@ -22,6 +22,26 @@ use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex, RwLock};
 use std::{collections::HashSet, thread, time::Duration};
+
+#[derive(PartialEq)]
+enum EnsembleState {
+    Started,
+    Stopped,
+    Cancelled,
+    Failed,
+    Unknown,
+}
+impl EnsembleState {
+    fn as_str(&self) -> &'static str {
+        match self {
+            EnsembleState::Started => "Starting",
+            EnsembleState::Unknown => "Unknown",
+            EnsembleState::Stopped => "Stopped",
+            EnsembleState::Cancelled => "Cancelled",
+            EnsembleState::Failed => "Failed",
+        }
+    }
+}
 
 type ZMQIdentity = Vec<u8>;
 #[derive(Clone)]
@@ -34,18 +54,18 @@ pub struct EE {
     _ert_identity: Arc<RwLock<Option<ZMQIdentity>>>,
     _events_to_send: Arc<SegQueue<QueueEvents>>,
     _batch_processing_queue: Arc<SegQueue<HashMap<DestinationHandler, Vec<Event>>>>,
-    _events: Arc<SegQueue<DispatcherEvent>>,
+    _events: Arc<SegQueue<Event>>,
     _router_socket: Arc<Mutex<Option<zmq::Socket>>>,
-    _ensemble_id: Arc<String>,
+    _ensemble_id: Arc<RwLock<Option<String>>>,
+    _ensemble_status: Arc<RwLock<EnsembleState>>,
     _main_snapshot: Arc<RwLock<EnsembleSnapshot>>,
     _batching_interval: Arc<Duration>,
     _max_batch_size: Arc<i64>,
-    _ensemble_status: Arc<String>,
     server_curve: Arc<Option<(Vec<u8>, Vec<u8>)>>,
     is_socket_ready: Arc<AtomicBool>,
 }
 #[derive(Debug)]
-enum QueueEvents {
+pub enum QueueEvents {
     HeartBeat(HeartBeat),
     EnsembleSnapshot(EESnapshotUpdateEvent),
     Checksum(ForwardModelStepChecksum),
@@ -54,11 +74,7 @@ enum QueueEvents {
 impl EE {
     //#[new]
     //#[pyo3(signature=(address, server_curve, ensemble_id))]
-    pub fn new(
-        address: String,
-        server_curve: Option<(Vec<u8>, Vec<u8>)>,
-        ensemble_id: String,
-    ) -> Self {
+    pub fn new(address: String, server_curve: Option<(Vec<u8>, Vec<u8>)>) -> Self {
         let instance = Self {
             _thread: Arc::new(None),
             address: Arc::new(address),
@@ -68,13 +84,13 @@ impl EE {
             _ert_identity: Arc::new(RwLock::new(None)),
             _events_to_send: Arc::new(SegQueue::new()),
             _router_socket: Arc::new(Mutex::new(None)),
-            _ensemble_id: Arc::new(ensemble_id),
+            _ensemble_id: Arc::new(RwLock::new(None)),
             _main_snapshot: Arc::new(RwLock::new(EnsembleSnapshot::default())),
             _max_batch_size: Arc::new(500),
             _batch_processing_queue: Arc::new(SegQueue::new()),
             _events: Arc::new(SegQueue::new()),
             _batching_interval: Arc::new(Duration::from_secs(1)),
-            _ensemble_status: Arc::new(String::from("Running")),
+            _ensemble_status: Arc::new(RwLock::new(EnsembleState::Unknown)),
             server_curve: Arc::new(server_curve),
             is_socket_ready: Arc::new(AtomicBool::new(false)),
         };

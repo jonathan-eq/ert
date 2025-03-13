@@ -147,10 +147,10 @@ class EnsembleSnapshot:
         if ensemble._ensemble_state is not None:
             self._ensemble_state = ensemble._ensemble_state
         for real_id, other_real_data in ensemble._realization_snapshots.items():
-            self._realization_snapshots[real_id].update(other_real_data)
+            self._realization_snapshots[real_id].update(_filter_nones(other_real_data))
         for fm_step_id, other_fm_data in ensemble._fm_step_snapshots.items():
-            self._fm_step_snapshots[fm_step_id].update(other_fm_data)
-        return self
+            self._fm_step_snapshots[fm_step_id].update(_filter_nones(other_fm_data))
+        print("After merge: ", self.to_dict())
 
     def merge_metadata(self, metadata: EnsembleSnapshotMetadata) -> None:
         self._metadata.update(metadata)

@@ -10,17 +10,14 @@ use crate::{
 impl EE {
     pub fn handle_ert(self: &Arc<Self>, ert_zmq_id: &ZMQIdentity, ert_id: &String, frame: &String) {
         if frame == "CONNECT" {
-            _ = self
-                ._ert_identity
-                .write()
-                .unwrap()
-                .insert(ert_zmq_id.clone());
+            let mut n = self._ert_identity.write().unwrap();
+            *n = Some(ert_zmq_id.clone());
             info!("CONNECTED {}", ert_id);
         } else if frame == "DISCONNECT" {
             *self._ert_identity.write().unwrap() = None;
             info!("DISCONNECTED {}", ert_id);
         } else {
-            log::warn!("GOT CRAZY EVENT FROM ERT: {frame}");
+            self._handle_event_from_ert(frame);
         }
     }
 
@@ -74,7 +71,11 @@ impl EE {
             }
             let full_snapshot_event = EEFullSnapshotEvent::new(
                 self._main_snapshot.read().unwrap().clone(),
-                self._ensemble_id.to_string().clone(),
+                self._ensemble_id
+                    .read()
+                    .unwrap()
+                    .clone()
+                    .unwrap_or_default(),
             );
             {
                 // might not need the extra block here. It was just to make sure the lock was released

@@ -1,27 +1,30 @@
 use std::collections::HashMap;
 
 use chrono::{DateTime, Utc};
-use log::error;
+use log::{debug, error};
 use serde::{Deserialize, Serialize};
 
 use super::fm_step_snapshot::FMStepSnapshot;
 use super::fm_step_snapshot::*;
-use super::realization_snapshot::{RealizationEvent, RealizationSnapshot};
+use super::realization_snapshot::RealizationSnapshot;
 use crate::events::dispatcher_event::FMEvent;
 use crate::events::ensemble_event::EnsembleEvent;
+use crate::events::ert_event::RealizationEvent;
 use crate::events::snapshot_event::EESnapshotUpdateEvent;
 use crate::events::{types::*, Event};
 use crate::update_field_if_set;
 use crate::utils::is_none_or_empty;
 
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct EnsembleSnapshot {
     #[serde(rename = "reals")]
     #[serde(skip_serializing_if = "HashMap::is_empty")]
     pub _realization_snapshots: HashMap<RealId, RealizationSnapshot>,
     #[serde(skip_serializing)]
+    #[serde(default)]
     pub _fm_step_snapshots: HashMap<(RealId, FmStepId), FMStepSnapshot>,
     #[serde(skip_serializing_if = "is_none_or_empty")]
+    #[serde(rename = "status")]
     pub _ensemble_state: Option<String>,
 }
 
@@ -53,12 +56,13 @@ impl EnsembleSnapshot {
             Event::FMEvent(inner_event) => return self.update_fm_from_event(inner_event),
             Event::EESnapshotUpdateEvent(inner_event) => {
                 self.merge_snapshot(inner_event);
+                debug!("AFTER MERGIN!{:#?}", self);
                 return self;
             }
         };
     }
     pub fn merge_snapshot(&mut self, event: &EESnapshotUpdateEvent) {
-        error!("Merge snapshot not implemented yet");
+        self.update_from(&event.snapshot);
     }
     pub fn update_fm_from_event(&mut self, event: &FMEvent) -> &mut Self {
         let mut mutate_snapshot = FMStepSnapshot::new();

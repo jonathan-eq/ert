@@ -8,7 +8,10 @@ use serde::Deserialize;
 pub mod fm_step_event;
 pub use fm_step_event::FMEvent;
 
-use crate::snapshots::realization_snapshot::RealizationWaiting;
+use super::{
+    ensemble_event::{EnsembleFailed, EnsembleStarted},
+    ert_event::realization_event::RealizationPending,
+};
 
 #[derive(Debug, Deserialize)]
 #[serde(tag = "event_type")]
@@ -21,8 +24,10 @@ pub enum DispatcherEvent {
     ForwardModelStepSuccess(ForwardModelStepSuccess),
     #[serde(rename = "forward_model_step.failure")]
     ForwardModelStepFailure(ForwardModelStepFailure),
-    #[serde(rename = "realization.waiting")]
-    RealizationWaiting(RealizationWaiting),
     #[serde(rename = "forward_model_step.checksum")]
-    Checksum(ForwardModelStepChecksum),
+    ForwardModelStepChecksum(ForwardModelStepChecksum),
+    #[serde(rename = "ensemble.started")]
+    EnsembleStarted(EnsembleStarted),
+    #[serde(rename = "ensemble.failed")]
+    EnsembleFailed(EnsembleFailed),
 }

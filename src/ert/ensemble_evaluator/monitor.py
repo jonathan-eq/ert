@@ -42,6 +42,7 @@ class Monitor(Client):
 
     async def process_message(self, msg: str) -> None:
         event = event_from_json(msg)
+
         await self._event_queue.put(event)
 
     async def signal_cancel(self) -> None:

@@ -7,6 +7,8 @@ use std::{
     time::Duration,
 };
 
+use log::debug;
+
 use crate::EE;
 
 impl EE {
@@ -40,11 +42,7 @@ impl EE {
 
                 // 🔓 Lock again to send the response
                 {
-                    let socket_lock = self._router_socket.lock().unwrap();
-                    let socket = socket_lock.as_ref().unwrap();
-                    socket
-                        .send_multipart(vec![&sender, &vec![], &b"ACK".to_vec()].iter(), 0)
-                        .unwrap();
+                    self._send_bytes_to_identity(&sender, &b"ACK".to_vec());
                 } // 🔓 Lock released again ✅
 
                 // Decode message
@@ -58,6 +56,7 @@ impl EE {
                 } else if decoded_sender.starts_with("dispatch") {
                     self.handle_dispatch(&sender, &decoded_sender, &decoded_payload);
                 } else if decoded_sender.starts_with("ert") {
+                    debug!("HANDLING ACTUAL ERT CLIENT!");
                     self.handle_ert(&sender, &decoded_sender, &decoded_payload);
                 } else {
                     eprintln!("Received msg from unknown sender '{}'", &decoded_sender);

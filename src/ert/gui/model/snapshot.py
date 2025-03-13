@@ -7,6 +7,7 @@ from typing import Any, Final, cast, overload
 
 from PyQt6.QtCore import QAbstractItemModel, QModelIndex, QObject, QSize, Qt
 from PyQt6.QtGui import QColor, QFont
+from ert.storage import Ensemble
 from typing_extensions import override
 
 from ert.ensemble_evaluator import EnsembleSnapshot, state
@@ -94,6 +95,7 @@ class SnapshotModel(QAbstractItemModel):
         fm_step_snapshots = ensemble.get_fm_steps_for_all_reals()
 
         if not reals and not fm_step_snapshots:
+            print("RETURNED EARLY FROM PRERENDER")
             return None
 
         metadata = EnsembleSnapshotMetadata(
@@ -135,10 +137,12 @@ class SnapshotModel(QAbstractItemModel):
         return ensemble
 
     def _update_snapshot(self, snapshot: EnsembleSnapshot, iter_: str) -> None:
+        print(f"CALLED UPDATE_SNAPSHOT WITH {snapshot.to_dict()=}")
         metadata = snapshot.metadata
         if not metadata:
-            logger.debug("no metadata in update snapshot, ignoring snapshot")
-            return
+            #logger.debug("no metadata in update snapshot, ignoring snapshot")
+            #return
+            metadata = EnsembleSnapshotMetadata()
 
         if iter_ not in self.root.children:
             logger.debug("no full snapshot to update yet, ignoring snapshot")
@@ -157,7 +161,7 @@ class SnapshotModel(QAbstractItemModel):
             iter_node = self.root.children[iter_]
             iter_index = self.index(iter_node.row(), 0, QModelIndex())
             reals_changed: list[int] = []
-
+            print(f"{iter_node.children.keys()=}")
             for real_id, real in reals.items():
                 real_node = iter_node.children[real_id]
                 data = real_node.data
@@ -223,6 +227,7 @@ class SnapshotModel(QAbstractItemModel):
             return
 
     def _add_snapshot(self, snapshot: EnsembleSnapshot, iter_: str) -> None:
+        print(f"CALLED ADD_SNAPSHOT")
         metadata = snapshot.metadata
         snapshot_tree = IterNode(
             id_=iter_,
@@ -263,6 +268,7 @@ class SnapshotModel(QAbstractItemModel):
                 real_node.add_child(fm_step_node)
 
         if iter_ in self.root.children:
+            print("STARTED RESET!!!")
             self.beginResetModel()
             snapshot_tree.parent = self.root
             self.root.children[iter_] = snapshot_tree

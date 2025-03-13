@@ -162,7 +162,7 @@ class Job:
                 break
 
             if self.returncode.result() == 0:
-                if self._scheduler._manifest_queue is not None:
+                if self._scheduler._eval_to_scheduler_queue is not None:
                     await self._verify_checksum(checksum_lock)
                 async with forward_model_ok_lock:
                     await self._handle_finished_forward_model()

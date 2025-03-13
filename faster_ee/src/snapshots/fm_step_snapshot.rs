@@ -1,14 +1,14 @@
 use crate::utils::is_none_or_empty;
 use crate::{events::dispatcher_event::FMEvent, update_field_if_set};
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, NaiveDateTime, Utc};
 use serde::{Deserialize, Serialize};
-#[derive(Clone, Serialize, Debug, PartialEq)]
+#[derive(Clone, Serialize, Debug, PartialEq, Deserialize)]
 pub struct FMStepSnapshot {
     #[serde(skip_serializing_if = "is_none_or_empty")]
     pub status: Option<String>,
-    pub start_time: Option<DateTime<Utc>>,
+    pub start_time: Option<NaiveDateTime>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub end_time: Option<DateTime<Utc>>,
+    pub end_time: Option<NaiveDateTime>,
     #[serde(skip_serializing_if = "is_none_or_empty")]
     pub index: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -75,7 +75,7 @@ impl FMStepSnapshot {
                 self.cpu_seconds = inner_event.cpu_seconds;
             }
             FMEvent::ForwardModelStepSuccess(event) => {
-                self.end_time = Some(event.end_time);
+                self.end_time = event.end_time;
                 self.error = Some(String::new());
             }
             FMEvent::ForwardModelStepFailure(event) => {

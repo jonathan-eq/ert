@@ -12,4 +12,5 @@ pub enum DestinationHandler {
     EnsembleSucceeded,
     EnsembleCancelled,
     EnsembleFailed,
+    EESnapshotUpdate,
 }

@@ -35,6 +35,7 @@ class Client:
     ) -> None:
         self._ack_timeout = ack_timeout or self.DEFAULT_ACK_TIMEOUT
         self.url = url
+        #print(f"{self.url=}")
         self.token = token
 
         self._ack_event: asyncio.Event = asyncio.Event()
@@ -46,7 +47,7 @@ class Client:
         self.dealer_id = dealer_name or f"dispatch-{uuid.uuid4().hex[:8]}"
         self.socket.setsockopt_string(zmq.IDENTITY, self.dealer_id)
 
-        if token is not None:
+        if False:#token is not None:
             client_public, client_secret = zmq.curve_keypair()
             self.socket.curve_secretkey = client_secret
             self.socket.curve_publickey = client_public
@@ -107,7 +108,7 @@ class Client:
                         and (asyncio.get_running_loop().time() - last_heartbeat_time)
                         > 2 * HEARTBEAT_TIMEOUT
                     ):
-                        await self.socket.send_multipart([b"", CONNECT_MSG])
+                        await self.socket.send_multipart([self.dealer_id.encode("utf-8"), b"", CONNECT_MSG])
                         logger.warning(
                             f"{self.dealer_id} heartbeat failed - reconnecting."
                         )
@@ -132,7 +133,7 @@ class Client:
             retries = self.DEFAULT_MAX_RETRIES
         while retries >= 0:
             try:
-                await self.socket.send_multipart([b"", message])
+                await self.socket.send_multipart([self.dealer_id.encode("utf-8"), b"", message])
                 try:
                     await asyncio.wait_for(
                         self._ack_event.wait(), timeout=self._ack_timeout

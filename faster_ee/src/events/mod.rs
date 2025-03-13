@@ -2,10 +2,10 @@ use dispatcher_event::FMEvent;
 use ensemble_event::EnsembleEvent;
 use snapshot_event::EESnapshotUpdateEvent;
 
-use crate::snapshots::realization_snapshot::RealizationEvent;
-
+use ert_event::RealizationEvent;
 pub mod client_event;
 pub mod dispatcher_event;
+pub mod ert_event;
 
 pub mod ensemble_event;
 pub mod snapshot_event;

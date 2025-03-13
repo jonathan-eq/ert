@@ -7,6 +7,7 @@ use crate::{
     evaluator::ee_threads::listen_for_messages::event_handlers::get_type_name,
     events::{
         dispatcher_event::{DispatcherEvent, FMEvent},
+        ensemble_event::EnsembleEvent,
         Event,
     },
     EE,
@@ -25,33 +26,44 @@ impl EE {
             {
                 events_in_map_count = events_in_map_count + 1;
                 match self._events.pop() {
-                    Some(inner_event) => match inner_event {
-                        DispatcherEvent::ForwardModelStepStart(event) => {
+                    Some(event) => match event {
+                        Event::FMEvent(_) => {
                             batch
                                 .entry(DestinationHandler::FMHandler)
                                 .or_default()
-                                .push(Event::FMEvent(FMEvent::ForwardModelStepStart(event)));
+                                .push(event);
                         }
-                        DispatcherEvent::ForwardModelStepRunning(event) => {
+                        Event::RealizationEvent(_) => {
                             batch
                                 .entry(DestinationHandler::FMHandler)
                                 .or_default()
-                                .push(Event::FMEvent(FMEvent::ForwardModelStepRunning(event)));
+                                .push(event);
                         }
-                        DispatcherEvent::ForwardModelStepSuccess(event) => {
+                        Event::EnsembleEvent(ref inner_event) => {
                             batch
-                                .entry(DestinationHandler::FMHandler)
+                                .entry(match inner_event {
+                                    EnsembleEvent::EnsembleCancelled(_) => {
+                                        DestinationHandler::EnsembleCancelled
+                                    }
+                                    EnsembleEvent::EnsembleFailed(_) => {
+                                        DestinationHandler::EnsembleFailed
+                                    }
+                                    EnsembleEvent::EnsembleStarted(_) => {
+                                        DestinationHandler::EnsembleStarted
+                                    }
+                                    EnsembleEvent::EnsembleSucceeded(_) => {
+                                        DestinationHandler::EnsembleSucceeded
+                                    }
+                                })
                                 .or_default()
-                                .push(Event::FMEvent(FMEvent::ForwardModelStepSuccess(event)));
+                                .push(event);
                         }
-                        DispatcherEvent::ForwardModelStepFailure(event) => {
+                        Event::EESnapshotUpdateEvent(_) => {
                             batch
-                                .entry(DestinationHandler::FMHandler)
+                                .entry(DestinationHandler::EESnapshotUpdate)
                                 .or_default()
-                                .push(Event::FMEvent(FMEvent::ForwardModelStepFailure(event)));
-                        }
-                        _ => {
-                            warn!("Not handling this type of event yet {:?}", inner_event);
+                                .push(event);
+                            warn!("We got EESnapshotUpdateEvent in batch_events_into_buffer. This should not happen");
                         }
                     },
                     None => {

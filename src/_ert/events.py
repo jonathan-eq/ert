@@ -153,6 +153,8 @@ class EnsembleFailed(EnsembleBaseEvent):
     event_type: Id.ENSEMBLE_FAILED_TYPE = Id.ENSEMBLE_FAILED
 
 
+
+
 class EnsembleCancelled(EnsembleBaseEvent):
     event_type: Id.ENSEMBLE_CANCELLED_TYPE = Id.ENSEMBLE_CANCELLED
 

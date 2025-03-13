@@ -27,13 +27,17 @@ impl EE {
             }
             QueueEvents::HeartBeat(inner) => {
                 if let Some(ert_identity) = self._ert_identity.read().unwrap().clone() {
-                    debug!("Sending heartbeat to Ert identity");
-                    self._send_bytes_to_identity(
-                        &ert_identity,
-                        &serde_json::to_string(&inner).unwrap().as_bytes().to_vec(),
-                    );
+                    self._handle_heartbeat_event(&ert_identity, inner);
                 }
             }
+            QueueEvents::EnsembleSnapshot(inner) => {
+                if let Some(ert_identity) = self._ert_identity.read().unwrap().clone() {
+                    let json_str = &serde_json::to_string(&inner).unwrap();
+                    debug!("Sending EESnapshotUpdate to Ert identity {}", json_str);
+                    self._send_bytes_to_identity(&ert_identity, &json_str.as_bytes().to_vec());
+                }
+            }
+
             _ => {
                 debug!("Not sending this eventtype to ert {:#?}", event);
             }
@@ -78,13 +82,7 @@ impl EE {
         );
     }
     fn _handle_heartbeat_event(self: &Arc<Self>, identity: &Vec<u8>, heartbeat_event: &HeartBeat) {
-        self._send_bytes_to_identity(
-            identity,
-            &serde_json::to_string(heartbeat_event)
-                .unwrap()
-                .as_bytes()
-                .to_vec(),
-        );
+        self._send_bytes_to_identity(identity, &heartbeat_event.msg.as_bytes().to_vec());
     }
     fn _handle_checksum_event(
         self: &Arc<Self>,

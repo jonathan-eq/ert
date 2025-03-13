@@ -19,7 +19,7 @@ from typing import TYPE_CHECKING, Any, cast
 from ert.ensemble_evaluator.minimal_evaluator import EvaluatorClient
 import numpy as np
 
-from _ert.events import EESnapshot, EESnapshotUpdate, EETerminated, Event
+from _ert.events import EESnapshot, EESnapshotUpdate, EETerminated, Event, event_to_json
 from ert.analysis import (
     ErtAnalysisError,
     smoother_update,
@@ -462,6 +462,7 @@ class BaseRunModel(ABC):
         if type(event) is EESnapshot:
             snapshot = EnsembleSnapshot.from_nested_dict(event.snapshot)
             self._iter_snapshot[iteration] = snapshot
+            print(f"Set {iteration=} to {snapshot=}")
             current_progress, realization_count = self._current_progress()
             status = self.get_current_status()
             self.send_event(
@@ -477,6 +478,7 @@ class BaseRunModel(ABC):
             )
         elif type(event) is EESnapshotUpdate:
             if iteration not in self._iter_snapshot:
+                print(f"{self._iter_snapshot.keys()=}")
                 raise OutOfOrderSnapshotUpdateException(
                     f"got snapshot update message without having stored "
                     f"snapshot for iter {iteration}"
@@ -485,6 +487,7 @@ class BaseRunModel(ABC):
             snapshot.update_from_event(
                 event, source_snapshot=self._iter_snapshot[iteration]
             )
+            print("BRM MERGING!")
             self._iter_snapshot[iteration].merge_snapshot(snapshot)
             current_progress, realization_count = self._current_progress()
             status = self.get_current_status()
@@ -513,7 +516,7 @@ class BaseRunModel(ABC):
                         EESnapshotUpdate,
                     }:
                         event = cast(EESnapshot | EESnapshotUpdate, event)
-
+                        print(f"MONITOR GOT EVENT {event.snapshot=}")
                         self.send_snapshot_event(event, iteration)
 
                         if event.snapshot.get(STATUS) in {
@@ -566,6 +569,7 @@ class BaseRunModel(ABC):
         #    ee_config,
         #)sour
         async with EvaluatorClient(ee_ensemble, ee_config) as evaluator_client:
+            await evaluator_client._force_refresh()
             evaluator_task = asyncio.create_task(
                 evaluator_client.run_and_get_successful_realizations()
             )

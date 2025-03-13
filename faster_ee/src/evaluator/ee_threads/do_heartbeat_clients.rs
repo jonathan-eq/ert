@@ -11,7 +11,7 @@ pub struct HeartBeat {
 impl HeartBeat {
     pub fn new() -> Self {
         HeartBeat {
-            msg: String::from("HEARTBEAT"),
+            msg: String::from("BEAT"),
         }
     }
 }

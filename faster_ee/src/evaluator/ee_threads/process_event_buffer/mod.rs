@@ -2,6 +2,8 @@ pub mod event_handlers;
 mod test;
 use std::{sync::Arc, thread, time::Duration};
 
+use log::debug;
+
 use super::DestinationHandler;
 use crate::EE;
 
@@ -10,7 +12,6 @@ impl EE {
         while self.is_running() {
             match self._batch_processing_queue.pop() {
                 Some(inner_event) => {
-                    println!("PROCESS EVENT BUFFER RAN AND FOUND EVENT!");
                     for (handler, events) in inner_event {
                         match handler {
                             DestinationHandler::FMHandler => {
@@ -27,6 +28,9 @@ impl EE {
                             }
                             DestinationHandler::EnsembleSucceeded => {
                                 self._stopped_handler(&events);
+                            }
+                            DestinationHandler::EESnapshotUpdate => {
+                                self._update_snapshot_handler(&events);
                             }
                         };
                     }

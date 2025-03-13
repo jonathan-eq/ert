@@ -1,19 +1,17 @@
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::snapshots::EnsembleSnapshot;
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Debug, Deserialize)]
 pub struct EESnapshotUpdateEvent {
-    pub event_type: &'static str,
     pub snapshot: EnsembleSnapshot,
     pub ensemble: String,
 }
 impl EESnapshotUpdateEvent {
     pub fn new(snapshot: EnsembleSnapshot, ensemble: String) -> Self {
         EESnapshotUpdateEvent {
-            event_type: "ee.snapshot_update",
-            snapshot,
-            ensemble,
+            snapshot: snapshot.clone(),
+            ensemble: ensemble.clone(),
         }
     }
 }

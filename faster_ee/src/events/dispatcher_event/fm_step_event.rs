@@ -1,19 +1,23 @@
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, NaiveDateTime, Utc};
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
 pub struct ForwardModelStepStart {
-    pub time: DateTime<Utc>,
+    pub time: NaiveDateTime,
     pub fm_step: String,
+    #[serde(rename = "real")]
     pub real_id: String,
+    #[serde(rename = "std_out")]
     pub stdout: Option<String>,
+    #[serde(rename = "std_err")]
     pub stderr: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct ForwardModelStepRunning {
-    pub time: DateTime<Utc>,
+    pub time: NaiveDateTime,
     pub fm_step: String,
+    #[serde(rename = "real")]
     pub real_id: String,
     pub current_memory_usage: Option<i64>,
     pub max_memory_usage: Option<i64>,
@@ -22,18 +26,21 @@ pub struct ForwardModelStepRunning {
 
 #[derive(Debug, Deserialize)]
 pub struct ForwardModelStepSuccess {
-    pub time: DateTime<Utc>,
+    pub time: NaiveDateTime,
     pub fm_step: String,
+    #[serde(rename = "real")]
     pub real_id: String,
-    pub end_time: DateTime<Utc>,
+    #[serde()]
+    pub end_time: Option<NaiveDateTime>,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct ForwardModelStepFailure {
-    pub time: DateTime<Utc>,
+    pub time: NaiveDateTime,
     pub fm_step: String,
+    #[serde(rename = "real")]
     pub real_id: String,
-    pub end_time: DateTime<Utc>,
+    pub end_time: NaiveDateTime,
     pub error: Option<String>,
 }
 

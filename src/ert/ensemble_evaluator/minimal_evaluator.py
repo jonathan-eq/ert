@@ -9,6 +9,7 @@ from enum import Enum
 from typing import Any, get_args
 import uuid
 
+from websocket import send
 import zmq.asyncio
 
 from _ert.events import (
@@ -83,11 +84,18 @@ class EvaluatorClient(Client):
             )
         self._forwarding_task = asyncio.create_task(self._forward_events())
         super().__init__(config.url, config.token, dealer_name=f"ert-{self._id}")
+        print("EvaluatorClient __init__ merging")
+        
+    async def _force_refresh(self) -> None:
+        await self.send(event_to_json(EESnapshotUpdate(ensemble=self._ensemble.id_, snapshot=self._ensemble.snapshot.to_dict())))
+        #self._ensemble.snapshot.merge_snapshot(EnsembleSnapshot.from_nested_dict({}))
+        #await self._event_queue.put(self._ensemble.snapshot)
+        
 
     async def _forward_events(self) -> None:
+      
       while True:
         event = await self._scheduler_to_evaluator_queue.get()
-        print(f"minimal evaluator forwarding {event}")
         await self.send(event_to_json(event))
 
     async def _unused_stopped_handler(self, events: Sequence[EnsembleSucceeded]) -> None:
@@ -132,19 +140,17 @@ class EvaluatorClient(Client):
         return self._ensemble
 
     async def process_message(self, msg: str):
-            event = event_from_json_from_evaluator(msg)
-            match event:
-              case EEDone():
-                print("Minimal evaluator got EEDone")
+        event = event_from_json_from_evaluator(msg)
+        match event:
+            case EEDone():
+                #print("Minimal evaluator got EEDone")
                 self._received_evaluator_done.set()
-              case EESnapshot():
-                print("Minimal evaluator got full snapshot")
-                self._ensemble.snapshot = event.snapshot
-              case ForwardModelStepChecksum():
-                print("Minimal evaluator got fm checksum")
+            case ForwardModelStepChecksum():
+                #print("Minimal evaluator got fm checksum")
                 await self._evaluator_to_scheduler_queue.put(event)
-              case EESnapshotUpdate():
-                print("Minimal evaluator got EESnapshotUpdate")
+            case EESnapshotUpdate()|EESnapshot():
+                #print("Minimal evaluator got EESnapshotUpdate")
+                print(f"Minimal evaluator merging due to new snapshot {event.snapshot}")
                 self._ensemble.snapshot.merge_snapshot(EnsembleSnapshot.from_nested_dict(event.snapshot))
 
 
