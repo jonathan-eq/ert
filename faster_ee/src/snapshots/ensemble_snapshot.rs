@@ -1,15 +1,17 @@
 use std::collections::HashMap;
 
-use chrono::{DateTime, Utc};
-use log::{debug, error};
+use log::debug;
 use serde::{Deserialize, Serialize};
 
 use super::fm_step_snapshot::FMStepSnapshot;
-use super::fm_step_snapshot::*;
-use super::realization_snapshot::RealizationSnapshot;
-use crate::events::dispatcher_event::FMEvent;
-use crate::events::ensemble_event::EnsembleEvent;
-use crate::events::ert_event::RealizationEvent;
+
+use super::realization_snapshot::{RealizationSnapshot, RealizationState};
+use crate::events::dispatcher_event::fm_step_event::{
+    ForwardModelStepStatus, RealForwardModelStep,
+};
+
+use crate::events::ensemble_event::{EnsembleStatus, RealEnsembleEvent};
+use crate::events::ert_event::RealRealization;
 use crate::events::snapshot_event::EESnapshotUpdateEvent;
 use crate::events::{types::*, Event};
 use crate::update_field_if_set;
@@ -23,9 +25,9 @@ pub struct EnsembleSnapshot {
     #[serde(skip_serializing)]
     #[serde(default)]
     pub _fm_step_snapshots: HashMap<(RealId, FmStepId), FMStepSnapshot>,
-    #[serde(skip_serializing_if = "is_none_or_empty")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "status")]
-    pub _ensemble_state: Option<String>,
+    pub _ensemble_state: Option<EnsembleStatus>,
 }
 
 impl Default for EnsembleSnapshot {
@@ -64,10 +66,10 @@ impl EnsembleSnapshot {
     pub fn merge_snapshot(&mut self, event: &EESnapshotUpdateEvent) {
         self.update_from(&event.snapshot);
     }
-    pub fn update_fm_from_event(&mut self, event: &FMEvent) -> &mut Self {
+    pub fn update_fm_from_event(&mut self, event: &RealForwardModelStep) -> &mut Self {
         let mut mutate_snapshot = FMStepSnapshot::new();
         mutate_snapshot.update_from_event(event);
-        self._update_fm_step(event.get_real_id().clone(), &mutate_snapshot);
+        self._update_fm_step(event.real_id.clone(), &mutate_snapshot);
         return self;
     }
 
@@ -82,14 +84,14 @@ impl EnsembleSnapshot {
 
     pub fn update_real_from_event(
         &mut self,
-        event: &RealizationEvent,
+        event: &RealRealization,
         source_snapshot: &EnsembleSnapshot,
     ) -> &mut Self {
         let source_snapshot = source_snapshot;
         let mut mutate_snapshot = RealizationSnapshot::new();
         mutate_snapshot.update_from_event(event);
         self._update_realization(event.get_real_id(), &mutate_snapshot);
-        if let RealizationEvent::RealizationTimeout(timeout_out_realization) = event {
+        if event.status == RealizationState::Timeout {
             self._handle_realization_timeout(&mutate_snapshot, event, source_snapshot);
         }
         return self;
@@ -97,11 +99,11 @@ impl EnsembleSnapshot {
     fn _handle_realization_timeout(
         &mut self,
         mutate_snapshot: &RealizationSnapshot,
-        event: &RealizationEvent,
+        event: &RealRealization,
         source_snapshot: &Self,
     ) {
         let mut snapshot_to_update_from = FMStepSnapshot::new();
-        snapshot_to_update_from.status = Some(String::from("Failed"));
+        snapshot_to_update_from.status = Some(ForwardModelStepStatus::Failed);
         snapshot_to_update_from.end_time = mutate_snapshot.end_time;
         snapshot_to_update_from.error = Some(String::from(
             "The run is cancelled due to reaching MAX_RUNTIME",
@@ -112,8 +114,8 @@ impl EnsembleSnapshot {
             .and_then(|realsnapshot| Some(&realsnapshot.fm_steps))
             .unwrap_or(&HashMap::new())
         {
-            if let Some(status_msg) = &source_fm_step_snapshot.status {
-                if status_msg != "finished" {
+            if let Some(status_msg) = source_fm_step_snapshot.status.clone() {
+                if status_msg != ForwardModelStepStatus::Failed {
                     let fm_idx = (event.get_real_id(), fm_step_id.clone());
                     let fm_step_snapshot = self
                         ._fm_step_snapshots
@@ -133,8 +135,8 @@ impl EnsembleSnapshot {
         stored_snapshot.update_from(mutate_snapshot)
     }
 
-    fn update_ensemble_from_event(&mut self, event: &EnsembleEvent) -> &mut EnsembleSnapshot {
-        self._ensemble_state = Some(String::from(event.get_status()));
+    fn update_ensemble_from_event(&mut self, event: &RealEnsembleEvent) -> &mut EnsembleSnapshot {
+        self._ensemble_state = Some(event.state.clone());
         self
     }
 
@@ -188,5 +190,17 @@ impl EnsembleSnapshot {
             }
         }
         self_clone
+    }
+
+    pub fn get_successful_realizations(self) -> Vec<i64> {
+        let mut completed_realizations: Vec<i64> = Vec::new();
+        for (idx, snapshot) in self._realization_snapshots {
+            if let Some(status) = snapshot.status {
+                if status == RealizationState::Finished {
+                    completed_realizations.push(idx.parse().unwrap());
+                }
+            }
+        }
+        completed_realizations
     }
 }

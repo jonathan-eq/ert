@@ -4,12 +4,7 @@ use chrono::Utc;
 use log::{debug, warn};
 
 use crate::{
-    evaluator::ee_threads::listen_for_messages::event_handlers::get_type_name,
-    events::{
-        dispatcher_event::{DispatcherEvent, FMEvent},
-        ensemble_event::EnsembleEvent,
-        Event,
-    },
+    events::{ensemble_event::EnsembleStatus, Event},
     EE,
 };
 
@@ -41,17 +36,13 @@ impl EE {
                         }
                         Event::EnsembleEvent(ref inner_event) => {
                             batch
-                                .entry(match inner_event {
-                                    EnsembleEvent::EnsembleCancelled(_) => {
+                                .entry(match inner_event.state {
+                                    EnsembleStatus::Cancelled => {
                                         DestinationHandler::EnsembleCancelled
                                     }
-                                    EnsembleEvent::EnsembleFailed(_) => {
-                                        DestinationHandler::EnsembleFailed
-                                    }
-                                    EnsembleEvent::EnsembleStarted(_) => {
-                                        DestinationHandler::EnsembleStarted
-                                    }
-                                    EnsembleEvent::EnsembleSucceeded(_) => {
+                                    EnsembleStatus::Failed => DestinationHandler::EnsembleFailed,
+                                    EnsembleStatus::Started => DestinationHandler::EnsembleStarted,
+                                    EnsembleStatus::Succeeded => {
                                         DestinationHandler::EnsembleSucceeded
                                     }
                                 })

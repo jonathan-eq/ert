@@ -1,23 +1,23 @@
 use std::collections::HashMap;
 
-use crate::events::ert_event::RealizationEvent;
+use crate::events::ert_event::RealRealization;
 use crate::utils::is_none_or_empty;
 use crate::{events::types::FmStepId, update_field_if_not_empty, update_field_if_set};
-use chrono::Utc;
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use super::fm_step_snapshot::FMStepSnapshot;
 
 #[derive(Clone, Serialize, Debug, PartialEq, Deserialize)]
 pub struct RealizationSnapshot {
-    #[serde(skip_serializing_if = "is_none_or_empty")]
-    pub status: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub status: Option<RealizationState>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub active: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub start_time: Option<chrono::NaiveDateTime>,
+    pub start_time: Option<DateTime<Utc>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub end_time: Option<chrono::NaiveDateTime>,
+    pub end_time: Option<DateTime<Utc>>,
     #[serde(skip_serializing_if = "is_none_or_empty")]
     pub exec_hosts: Option<String>,
     #[serde(skip_serializing_if = "is_none_or_empty")]
@@ -25,6 +25,30 @@ pub struct RealizationSnapshot {
     #[serde(skip_serializing_if = "HashMap::is_empty")]
     #[serde(rename = "fm_steps")]
     pub fm_steps: HashMap<FmStepId, FMStepSnapshot>, // Might be benefitial to use None rather than empty HashMap
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+pub enum RealizationState {
+    Waiting,
+    Pending,
+    Running,
+    Failed,
+    Finished,
+    Unknown,
+    Timeout,
+}
+impl RealizationState {
+    pub fn to_str(self) -> &'static str {
+        match self {
+            Self::Waiting => "Waiting",
+            Self::Pending => "Pending",
+            Self::Running => "Running",
+            Self::Failed => "Failed",
+            Self::Finished => "Finished",
+            Self::Unknown => "Unknown",
+            Self::Timeout => "Timeout",
+        }
+    }
 }
 
 impl RealizationSnapshot {
@@ -39,23 +63,23 @@ impl RealizationSnapshot {
             fm_steps: HashMap::new(),
         }
     }
-    pub fn update_from_event(&mut self, event: &RealizationEvent) -> &mut Self {
-        self.exec_hosts = event.get_exec_hosts();
-        self.status = Some(String::from(event.get_status()));
+    pub fn update_from_event(&mut self, event: &RealRealization) -> &mut Self {
+        self.exec_hosts = event.exec_hosts.clone();
+        self.status = Some(event.status.clone());
 
-        match event {
-            RealizationEvent::RealizationRunning(inner_event) => {
-                self.start_time = Some(inner_event.time);
+        match event.status {
+            RealizationState::Running => {
+                self.start_time = Some(event.time);
             }
-            RealizationEvent::RealizationFailed(inner_event) => {
-                self.message = inner_event.message.clone();
-                self.end_time = Some(inner_event.time);
+            RealizationState::Failed => {
+                self.message = event.message.clone();
+                self.end_time = Some(event.time);
             }
-            RealizationEvent::RealizationSuccess(inner_event) => {
-                self.end_time = Some(inner_event.time);
+            RealizationState::Finished => {
+                self.end_time = Some(event.time);
             }
-            RealizationEvent::RealizationTimeout(inner_event) => {
-                self.end_time = Some(inner_event.time);
+            RealizationState::Timeout => {
+                self.end_time = Some(event.time);
             }
             _ => {}
         }

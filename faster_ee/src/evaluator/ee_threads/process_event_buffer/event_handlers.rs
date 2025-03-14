@@ -4,7 +4,7 @@ use log::{debug, error};
 
 use crate::{
     evaluator::{EnsembleState, QueueEvents},
-    events::{ensemble_event::EnsembleEvent, snapshot_event::EESnapshotUpdateEvent, Event},
+    events::{snapshot_event::EESnapshotUpdateEvent, Event},
     snapshots::EnsembleSnapshot,
 };
 
@@ -13,9 +13,7 @@ use super::EE;
 impl EE {
     pub fn _started_handler(self: &Arc<Self>, events: &Vec<Event>) {
         let ensemble_status = self._ensemble_status.read().unwrap();
-        if let Event::EnsembleEvent(EnsembleEvent::EnsembleStarted(ensemble_started_event)) =
-            events.first().clone().unwrap()
-        {
+        if let Event::EnsembleEvent(ensemble_started_event) = events.first().clone().unwrap() {
             let _ = self
                 ._ensemble_id
                 .write()
@@ -83,7 +81,11 @@ impl EE {
     fn _append_message(self: &Arc<Self>, snapshot_update_event: EnsembleSnapshot) {
         let event = EESnapshotUpdateEvent::new(
             snapshot_update_event,
-            self._ensemble_id.read().unwrap().clone().unwrap(),
+            self._ensemble_id
+                .read()
+                .unwrap()
+                .clone()
+                .unwrap_or_default(),
         );
         self._events_to_send
             .push(QueueEvents::EnsembleSnapshot(event));

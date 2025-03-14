@@ -1,5 +1,4 @@
 use crate::events::dispatcher_event::checksum_event::ForwardModelStepChecksum;
-use crate::events::dispatcher_event::DispatcherEvent;
 
 use crate::events::Event;
 

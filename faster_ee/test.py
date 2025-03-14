@@ -13,7 +13,7 @@ context = zmq.asyncio.Context()
 class ZMQClient:
     def __init__(self, name: bytes):
         socket: zmq.asyncio.Socket = context.socket(zmq.DEALER)
-        socket.connect("tcp://localhost:8889")
+        socket.connect("tcp://localhost:8888")
         socket.setsockopt_string(zmq.IDENTITY, name.decode("utf-8"))
         self.socket = socket
         self.name = name
@@ -48,9 +48,9 @@ async def main():
                 "event_type": "forward_model_step.start",
                 "time": str(datetime.datetime.now(datetime.UTC)),
                 "fm_step": "1",
-                "real_id": "0",
-                "stderr": "",
-                "stdout": "",
+                "real": "0",
+                "std_err": "",
+                "std_out": "",
             }
         ).encode("utf-8")
     )

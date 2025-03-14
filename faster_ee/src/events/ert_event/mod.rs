@@ -1,5 +1,4 @@
 pub mod realization_event;
-use chrono::NaiveDateTime;
 pub use realization_event::*;
 use serde::{Deserialize, Serialize};
 
@@ -8,19 +7,19 @@ use super::snapshot_event::EESnapshotUpdateEvent;
 #[derive(Debug, Deserialize, Serialize)]
 pub enum ErtEvent {
     #[serde(rename = "realization.waiting")]
-    RealizationWaiting(RealizationWaiting),
+    RealizationWaiting(RealRealization),
     #[serde(rename = "realization.pending")]
-    RealizationPending(RealizationPending),
+    RealizationPending(RealRealization),
     #[serde(rename = "realization.running")]
-    RealizationRunning(RealizationRunning),
+    RealizationRunning(RealRealization),
     #[serde(rename = "realization.success")]
-    RealizationSuccess(RealizationSuccess),
+    RealizationSuccess(RealRealization),
     #[serde(rename = "realization.failure")]
-    RealizationFailed(RealizationFailed),
+    RealizationFailed(RealRealization),
     #[serde(rename = "realization.unknown")]
-    RealizationUnknown(RealizationUnknown),
+    RealizationUnknown(RealRealization),
     #[serde(rename = "realization.timeout")]
-    RealizationTimeout(RealizationTimeout),
+    RealizationTimeout(RealRealization),
     #[serde(rename = "ee.snapshot_update")]
     EESnapshotUpdate(EESnapshotUpdateEvent),
 }

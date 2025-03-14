@@ -1,26 +1,14 @@
-use std::{any::type_name, sync::Arc};
+use std::sync::Arc;
 
 use log::{debug, error, info, warn};
 
 use crate::{
     evaluator::QueueEvents,
     events::{
-        client_event::ClientEvent,
-        dispatcher_event::{DispatcherEvent, FMEvent},
-        ensemble_event::EnsembleEvent,
-        ert_event::{ErtEvent, RealizationEvent},
-        Event,
+        client_event::ClientEvent, dispatcher_event::DispatcherEvent, ert_event::ErtEvent, Event,
     },
     EE,
 };
-
-pub fn print_type<T>(prefix: &str, _: &T) {
-    debug!("{}{}", prefix, type_name::<T>());
-}
-
-pub fn get_type_name<T>(_: &T) -> &str {
-    type_name::<T>()
-}
 
 impl EE {
     pub fn _handle_event_from_dispatcher(self: &Arc<Self>, json_string: &String) {
@@ -29,35 +17,22 @@ impl EE {
                 DispatcherEvent::ForwardModelStepChecksum(event) => {
                     self._events_to_send.push(QueueEvents::Checksum(event));
                 }
-                DispatcherEvent::EnsembleFailed(event) => {
-                    self._events
-                        .push(Event::EnsembleEvent(EnsembleEvent::EnsembleFailed(event)));
+                DispatcherEvent::EnsembleFailed(event)
+                | DispatcherEvent::EnsembleStarted(event) => {
+                    self._events.push(Event::EnsembleEvent(event));
                 }
-                DispatcherEvent::EnsembleStarted(event) => {
-                    self._events
-                        .push(Event::EnsembleEvent(EnsembleEvent::EnsembleStarted(event)));
-                }
-                DispatcherEvent::ForwardModelStepFailure(event) => {
-                    self._events
-                        .push(Event::FMEvent(FMEvent::ForwardModelStepFailure(event)));
-                }
-                DispatcherEvent::ForwardModelStepRunning(event) => {
-                    self._events
-                        .push(Event::FMEvent(FMEvent::ForwardModelStepRunning(event)));
-                }
-                DispatcherEvent::ForwardModelStepStart(event) => {
-                    self._events
-                        .push(Event::FMEvent(FMEvent::ForwardModelStepStart(event)));
-                }
-                DispatcherEvent::ForwardModelStepSuccess(event) => {
-                    self._events
-                        .push(Event::FMEvent(FMEvent::ForwardModelStepSuccess(event)));
+
+                DispatcherEvent::ForwardModelStepFailure(event)
+                | DispatcherEvent::ForwardModelStepRunning(event)
+                | DispatcherEvent::ForwardModelStepStart(event)
+                | DispatcherEvent::ForwardModelStepSuccess(event) => {
+                    self._events.push(Event::FMEvent(event));
                 }
             },
             Err(err) => {
                 error!(
-                    " Couldn't deserialize event '{json_string}' from dispatcher {:#?}",
-                    err
+                    " Couldn't deserialize event from dispatcher '{json_string}' from dispatcher {:#?}",
+                    err.to_string()
                 )
             }
         }
@@ -86,40 +61,14 @@ impl EE {
         debug!("HANDLING EVENT FROM ERT {}", json_string);
         match serde_json::from_str::<ErtEvent>(json_string.as_str()) {
             Ok(event) => match event {
-                ErtEvent::RealizationFailed(event) => {
-                    self._events.push(Event::RealizationEvent(
-                        RealizationEvent::RealizationFailed(event),
-                    ));
-                }
-                ErtEvent::RealizationPending(event) => {
-                    self._events.push(Event::RealizationEvent(
-                        RealizationEvent::RealizationPending(event),
-                    ));
-                }
-                ErtEvent::RealizationRunning(event) => {
-                    self._events.push(Event::RealizationEvent(
-                        RealizationEvent::RealizationRunning(event),
-                    ));
-                }
-                ErtEvent::RealizationSuccess(event) => {
-                    self._events.push(Event::RealizationEvent(
-                        RealizationEvent::RealizationSuccess(event),
-                    ));
-                }
-                ErtEvent::RealizationTimeout(event) => {
-                    self._events.push(Event::RealizationEvent(
-                        RealizationEvent::RealizationTimeout(event),
-                    ));
-                }
-                ErtEvent::RealizationUnknown(event) => {
-                    self._events.push(Event::RealizationEvent(
-                        RealizationEvent::RealizationUnknown(event),
-                    ));
-                }
-                ErtEvent::RealizationWaiting(event) => {
-                    self._events.push(Event::RealizationEvent(
-                        RealizationEvent::RealizationWaiting(event),
-                    ));
+                ErtEvent::RealizationFailed(event)
+                | ErtEvent::RealizationPending(event)
+                | ErtEvent::RealizationRunning(event)
+                | ErtEvent::RealizationSuccess(event)
+                | ErtEvent::RealizationTimeout(event)
+                | ErtEvent::RealizationUnknown(event)
+                | ErtEvent::RealizationWaiting(event) => {
+                    self._events.push(Event::RealizationEvent(event));
                 }
                 ErtEvent::EESnapshotUpdate(event) => {
                     warn!("GOT EE SNAPSHOT FROM ERT");
@@ -129,7 +78,7 @@ impl EE {
             },
             Err(err) => {
                 error!(
-                    " Couldn't deserialize event '{json_string}' from ert {:#?}",
+                    " Couldn't deserialize event from ert '{json_string}' from ert {:#?}",
                     err
                 )
             }

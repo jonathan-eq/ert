@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use chrono::{DateTime, NaiveDateTime, Utc};
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Debug, Serialize)]
@@ -18,7 +18,7 @@ pub struct _Checksum {
 pub struct ForwardModelStepChecksum {
     #[serde(default = "default_value")]
     event_type: String,
-    time: NaiveDateTime,
+    time: DateTime<Utc>,
     ensemble: Option<String>,
     real: String,
     #[serde(default)]

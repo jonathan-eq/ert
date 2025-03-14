@@ -5,7 +5,6 @@ use super::do_heartbeat_clients::HeartBeat;
 use crate::evaluator::EESnapshotUpdateEvent;
 use crate::events::dispatcher_event::checksum_event::ForwardModelStepChecksum;
 use crate::EE;
-use std::any::type_name_of_val;
 use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
@@ -36,10 +35,6 @@ impl EE {
                     debug!("Sending EESnapshotUpdate to Ert identity {}", json_str);
                     self._send_bytes_to_identity(&ert_identity, &json_str.as_bytes().to_vec());
                 }
-            }
-
-            _ => {
-                debug!("Not sending this eventtype to ert {:#?}", event);
             }
         }
     }

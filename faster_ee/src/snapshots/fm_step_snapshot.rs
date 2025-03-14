@@ -1,14 +1,17 @@
+use crate::events::dispatcher_event::fm_step_event::{
+    ForwardModelStepStatus, RealForwardModelStep,
+};
+use crate::update_field_if_set;
 use crate::utils::is_none_or_empty;
-use crate::{events::dispatcher_event::FMEvent, update_field_if_set};
-use chrono::{DateTime, NaiveDateTime, Utc};
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 #[derive(Clone, Serialize, Debug, PartialEq, Deserialize)]
 pub struct FMStepSnapshot {
-    #[serde(skip_serializing_if = "is_none_or_empty")]
-    pub status: Option<String>,
-    pub start_time: Option<NaiveDateTime>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub end_time: Option<NaiveDateTime>,
+    pub status: Option<ForwardModelStepStatus>,
+    pub start_time: Option<DateTime<Utc>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub end_time: Option<DateTime<Utc>>,
     #[serde(skip_serializing_if = "is_none_or_empty")]
     pub index: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -60,26 +63,26 @@ impl FMStepSnapshot {
         update_field_if_set!(self, other_snapshot, stderr);
         update_field_if_set!(self, other_snapshot, stdout);
     }
-    pub fn update_from_event(&mut self, event: &FMEvent) -> &mut Self {
-        self.status = Some(String::from(event.get_status()));
-        self.index = Some(event.get_fm_step_id().clone());
-        match event {
-            FMEvent::ForwardModelStepStart(inner_event) => {
-                self.start_time = Some(inner_event.time);
-                self.stdout = inner_event.stdout.clone();
-                self.stderr = inner_event.stderr.clone();
+    pub fn update_from_event(&mut self, event: &RealForwardModelStep) -> &mut Self {
+        self.status = Some(event.status.clone());
+        self.index = Some(event.fm_step.clone());
+        match event.status {
+            ForwardModelStepStatus::Started => {
+                self.start_time = Some(event.time);
+                self.stdout = event.stdout.clone();
+                self.stderr = event.stderr.clone();
             }
-            FMEvent::ForwardModelStepRunning(inner_event) => {
-                self.current_memory_usage = inner_event.current_memory_usage;
-                self.max_memory_usage = inner_event.max_memory_usage;
-                self.cpu_seconds = inner_event.cpu_seconds;
+            ForwardModelStepStatus::Running => {
+                self.current_memory_usage = event.current_memory_usage;
+                self.max_memory_usage = event.max_memory_usage;
+                self.cpu_seconds = event.cpu_seconds;
             }
-            FMEvent::ForwardModelStepSuccess(event) => {
-                self.end_time = event.end_time;
+            ForwardModelStepStatus::Finished => {
+                self.end_time = Some(event.time);
                 self.error = Some(String::new());
             }
-            FMEvent::ForwardModelStepFailure(event) => {
-                self.end_time = Some(event.end_time);
+            ForwardModelStepStatus::Failed => {
+                self.end_time = Some(event.time);
                 self.error = event.error.clone();
             }
         }

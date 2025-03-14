@@ -1,13 +1,8 @@
 use chrono::{DateTime, Utc};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize)]
-pub struct EEUserDone {
-    pub monitor: String,
-    pub time: DateTime<Utc>,
-}
-#[derive(Debug, Deserialize)]
-pub struct EEUserCancel {
+#[derive(Debug, Deserialize, Serialize)]
+pub struct EEUserEvent {
     pub monitor: String,
     pub time: DateTime<Utc>,
 }
@@ -16,7 +11,7 @@ pub struct EEUserCancel {
 #[serde(tag = "event_type")]
 pub enum ClientEvent {
     #[serde(rename = "ee.user_cancel")]
-    EEUserCancel(EEUserCancel),
+    EEUserCancel(EEUserEvent),
     #[serde(rename = "ee.user_done")]
-    EEUserDone(EEUserDone),
+    EEUserDone(EEUserEvent),
 }

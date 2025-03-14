@@ -1,9 +1,13 @@
-use chrono::{DateTime, NaiveDateTime, Utc};
-use serde::Deserialize;
+use chrono::{DateTime, Utc};
+use serde::{Deserialize, Deserializer, Serialize};
+use serde_json::Value;
 
-#[derive(Debug, Deserialize)]
-pub struct ForwardModelStepStart {
-    pub time: NaiveDateTime,
+#[derive(Debug, Deserialize, Serialize)]
+pub struct RealForwardModelStep {
+    #[serde(deserialize_with = "deserialize_status")]
+    #[serde(default)]
+    pub status: ForwardModelStepStatus,
+    pub time: DateTime<Utc>,
     pub fm_step: String,
     #[serde(rename = "real")]
     pub real_id: String,
@@ -11,70 +15,40 @@ pub struct ForwardModelStepStart {
     pub stdout: Option<String>,
     #[serde(rename = "std_err")]
     pub stderr: Option<String>,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct ForwardModelStepRunning {
-    pub time: NaiveDateTime,
-    pub fm_step: String,
-    #[serde(rename = "real")]
-    pub real_id: String,
     pub current_memory_usage: Option<i64>,
     pub max_memory_usage: Option<i64>,
     pub cpu_seconds: Option<f64>,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct ForwardModelStepSuccess {
-    pub time: NaiveDateTime,
-    pub fm_step: String,
-    #[serde(rename = "real")]
-    pub real_id: String,
-    #[serde()]
-    pub end_time: Option<NaiveDateTime>,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct ForwardModelStepFailure {
-    pub time: NaiveDateTime,
-    pub fm_step: String,
-    #[serde(rename = "real")]
-    pub real_id: String,
-    pub end_time: NaiveDateTime,
     pub error: Option<String>,
 }
-
-pub enum FMEvent {
-    ForwardModelStepStart(ForwardModelStepStart),
-    ForwardModelStepRunning(ForwardModelStepRunning),
-    ForwardModelStepSuccess(ForwardModelStepSuccess),
-    ForwardModelStepFailure(ForwardModelStepFailure),
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
+pub enum ForwardModelStepStatus {
+    Started,
+    Running,
+    Finished,
+    Failed,
 }
 
-impl FMEvent {
-    // Accessing the STATUS constant from each variant
-    pub fn get_status(&self) -> &'static str {
-        match self {
-            FMEvent::ForwardModelStepStart(_) => "Pending",
-            FMEvent::ForwardModelStepRunning(_) => "Running",
-            FMEvent::ForwardModelStepSuccess(_) => "Finished",
-            FMEvent::ForwardModelStepFailure(_) => "Failed",
-        }
+impl Default for ForwardModelStepStatus {
+    fn default() -> Self {
+        ForwardModelStepStatus::Started
     }
-    pub fn get_fm_step_id(&self) -> &String {
-        match self {
-            FMEvent::ForwardModelStepStart(inner) => &inner.fm_step,
-            FMEvent::ForwardModelStepRunning(inner) => &inner.fm_step,
-            FMEvent::ForwardModelStepSuccess(inner) => &inner.fm_step,
-            FMEvent::ForwardModelStepFailure(inner) => &inner.fm_step,
-        }
+}
+
+fn deserialize_status<'de, D>(deserializer: D) -> Result<ForwardModelStepStatus, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let map: Value = Deserialize::deserialize(deserializer)?;
+
+    if let Some(event_type) = map.get("event_type").and_then(Value::as_str) {
+        return match event_type {
+            "forward_model_step.start" => Ok(ForwardModelStepStatus::Started),
+            "forward_model_step.running" => Ok(ForwardModelStepStatus::Running),
+            "forward_model_step.success" => Ok(ForwardModelStepStatus::Finished),
+            "forward_model_step.failure" => Ok(ForwardModelStepStatus::Failed),
+            _ => Err(serde::de::Error::custom("Unknown event_type")),
+        };
     }
-    pub fn get_real_id(&self) -> &String {
-        match self {
-            FMEvent::ForwardModelStepStart(inner) => &inner.real_id,
-            FMEvent::ForwardModelStepRunning(inner) => &inner.real_id,
-            FMEvent::ForwardModelStepSuccess(inner) => &inner.real_id,
-            FMEvent::ForwardModelStepFailure(inner) => &inner.real_id,
-        }
-    }
+
+    Err(serde::de::Error::missing_field("event_type"))
 }
