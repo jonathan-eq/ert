@@ -6,8 +6,9 @@ from typing import TYPE_CHECKING, Any
 
 from PyQt6.QtCore import QSize, Qt
 from PyQt6.QtCore import pyqtSignal as Signal
-from PyQt6.QtGui import QAction, QIcon, QStandardItemModel
+from PyQt6.QtGui import QAction, QIcon, QStandardItemModel, QPalette
 from PyQt6.QtWidgets import (
+    
     QApplication,
     QCheckBox,
     QFrame,
@@ -21,6 +22,9 @@ from PyQt6.QtWidgets import (
 )
 
 from ert.gui.ertnotifier import ErtNotifier
+def is_high_contrast_mode() -> bool:
+        return QApplication.instance().palette().color(QPalette.ColorRole.Window).lightness() > 245
+    
 from ert.run_models import BaseRunModel, StatusEvents, create_model
 
 from ..summarypanel import SummaryPanel
@@ -257,6 +261,7 @@ class ExperimentPanel(QWidget):
                 "Are you sure you want to continue?"
             )
 
+            
             delete_runpath_checkbox = QCheckBox()
             delete_runpath_checkbox.setText("Delete run_path")
             msg_box.setCheckBox(delete_runpath_checkbox)
@@ -265,8 +270,12 @@ class ExperimentPanel(QWidget):
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
             )
             msg_box.setDefaultButton(QMessageBox.StandardButton.No)
-
             msg_box.setWindowModality(Qt.WindowModality.ApplicationModal)
+            if is_high_contrast_mode():
+                msg_box.setStyleSheet("""QMessageBox {color: black; background-color: white;} QLabel {color: black;} QPushButton {color: black;} QCheckBox {
+        color: black; 
+    }""")
+                msg_box.update()
 
             msg_box_res = msg_box.exec()
             if msg_box_res == QMessageBox.StandardButton.No:
