@@ -10,9 +10,11 @@ use crate::{
 impl EE {
     pub fn handle_ert(self: &Arc<Self>, ert_zmq_id: &ZMQIdentity, ert_id: &String, frame: &String) {
         if frame == "CONNECT" {
-            let mut n = self._ert_identity.write().unwrap();
-            *n = Some(ert_zmq_id.clone());
-            info!("CONNECTED {}", ert_id);
+            {
+                let mut n = self._ert_identity.write().unwrap();
+                *n = Some(ert_zmq_id.clone());
+                info!("CONNECTED {}", ert_id);
+            }
         } else if frame == "DISCONNECT" {
             *self._ert_identity.write().unwrap() = None;
             info!("DISCONNECTED {}", ert_id);

@@ -16,10 +16,9 @@ from pathlib import Path
 from queue import SimpleQueue
 from typing import TYPE_CHECKING, Any, cast
 
-from ert.ensemble_evaluator.minimal_evaluator import EvaluatorClient
 import numpy as np
 
-from _ert.events import EESnapshot, EESnapshotUpdate, EETerminated, Event, event_to_json
+from _ert.events import EESnapshot, EESnapshotUpdate, EETerminated, Event
 from ert.analysis import (
     ErtAnalysisError,
     smoother_update,
@@ -38,12 +37,12 @@ from ert.config.workflow import Workflow
 from ert.enkf_main import _seed_sequence, create_run_path
 from ert.ensemble_evaluator import Ensemble as EEEnsemble
 from ert.ensemble_evaluator import (
-    EnsembleEvaluator,
     EvaluatorServerConfig,
     Monitor,
     Realization,
 )
 from ert.ensemble_evaluator.identifiers import STATUS
+from ert.ensemble_evaluator.minimal_evaluator import EvaluatorClient
 from ert.ensemble_evaluator.snapshot import EnsembleSnapshot
 from ert.ensemble_evaluator.state import (
     ENSEMBLE_STATE_CANCELLED,
@@ -564,16 +563,16 @@ class BaseRunModel(ABC):
             self._end_queue.get()
             return []
         ee_ensemble = self._build_ensemble(run_args, ensemble.experiment_id)
-        #evaluator = EnsembleEvaluator(
+        # evaluator = EnsembleEvaluator(
         #    ee_ensemble,
         #    ee_config,
-        #)sour
+        # )sour
         async with EvaluatorClient(ee_ensemble, ee_config) as evaluator_client:
-            await evaluator_client._force_refresh()
+            await evaluator_client.start_evaluating()
             evaluator_task = asyncio.create_task(
                 evaluator_client.run_and_get_successful_realizations()
             )
-        
+
             if not (await self.run_monitor(ee_config, ensemble.iteration)):
                 return []
             await evaluator_task

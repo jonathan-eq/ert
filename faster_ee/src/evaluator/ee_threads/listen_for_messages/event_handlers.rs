@@ -123,6 +123,7 @@ impl EE {
                 }
                 ErtEvent::EESnapshotUpdate(event) => {
                     warn!("GOT EE SNAPSHOT FROM ERT");
+                    *self._ensemble_id.write().unwrap() = Some(event.ensemble.clone());
                     self._events.push(Event::EESnapshotUpdateEvent(event));
                 }
             },

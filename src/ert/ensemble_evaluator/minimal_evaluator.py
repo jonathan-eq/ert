@@ -3,41 +3,24 @@ from __future__ import annotations
 import asyncio
 import datetime
 import logging
-import traceback
-from collections.abc import Awaitable, Callable, Iterable, Sequence
-from enum import Enum
-from typing import Any, get_args
 import uuid
-
-from websocket import send
-import zmq.asyncio
+from collections.abc import Awaitable, Callable, Sequence
+from enum import Enum
+from typing import Any
 
 from _ert.events import (
     EEDone,
     EESnapshot,
     EESnapshotUpdate,
-    EETerminated,
-    EEUserCancel,
-    EEUserDone,
-    EnsembleCancelled,
     EnsembleFailed,
-    EnsembleStarted,
     EnsembleSucceeded,
     Event,
-    FMEvent,
     ForwardModelStepChecksum,
-    RealizationEvent,
-    dispatch_event_from_json,
     event_from_json,
-    event_from_json_from_evaluator,
     event_to_json,
 )
 from _ert.forward_model_runner.client import (
-    ACK_MSG,
-    CONNECT_MSG,
-    DISCONNECT_MSG,
     HEARTBEAT_MSG,
-    HEARTBEAT_TIMEOUT,
     Client,
 )
 from ert.ensemble_evaluator import identifiers as ids
@@ -76,29 +59,37 @@ class EvaluatorClient(Client):
         self._receiver_timeout: float = 60.0
         self._event_queue: asyncio.Queue[Event | EventSentinel] = asyncio.Queue()
         self._received_evaluator_done = asyncio.Event()
-        self._ensemble_task = asyncio.create_task(
-                self._ensemble.evaluate(
-                    self._config, self._scheduler_to_evaluator_queue, self._evaluator_to_scheduler_queue
-                ),
-                name="ensemble_task",
-            )
-        self._forwarding_task = asyncio.create_task(self._forward_events())
+
         super().__init__(config.url, config.token, dealer_name=f"ert-{self._id}")
         print("EvaluatorClient __init__ merging")
-        
-    async def _force_refresh(self) -> None:
-        await self.send(event_to_json(EESnapshotUpdate(ensemble=self._ensemble.id_, snapshot=self._ensemble.snapshot.to_dict())))
-        #self._ensemble.snapshot.merge_snapshot(EnsembleSnapshot.from_nested_dict({}))
-        #await self._event_queue.put(self._ensemble.snapshot)
-        
+
+    async def start_evaluating(self) -> None:
+        await self.send(
+            event_to_json(
+                EESnapshotUpdate(
+                    ensemble=self._ensemble.id_,
+                    snapshot=self._ensemble.snapshot.to_dict(),
+                )
+            )
+        )  # This is to have the rust_ee use this as a
+        self._forwarding_task = asyncio.create_task(self._forward_events())
+        self._ensemble_task = asyncio.create_task(
+            self._ensemble.evaluate(
+                self._config,
+                self._scheduler_to_evaluator_queue,
+                self._evaluator_to_scheduler_queue,
+            ),
+            name="ensemble_task",
+        )
 
     async def _forward_events(self) -> None:
-      
-      while True:
-        event = await self._scheduler_to_evaluator_queue.get()
-        await self.send(event_to_json(event))
+        while True:
+            event = await self._scheduler_to_evaluator_queue.get()
+            await self.send(event_to_json(event))
 
-    async def _unused_stopped_handler(self, events: Sequence[EnsembleSucceeded]) -> None:
+    async def _unused_stopped_handler(
+        self, events: Sequence[EnsembleSucceeded]
+    ) -> None:
         if self.ensemble.status == ENSEMBLE_STATE_FAILED:
             return
 
@@ -117,8 +108,7 @@ class EvaluatorClient(Client):
             f"Ensemble ran with maximum memory usage for a single realization job: {max_memory_usage}"
         )
 
-        #await self._append_message(self.ensemble.update_snapshot(events))
-
+        # await self._append_message(self.ensemble.update_snapshot(events))
 
     async def _unused_failed_handler(self, events: Sequence[EnsembleFailed]) -> None:
         if self.ensemble.status in {
@@ -132,42 +122,47 @@ class EvaluatorClient(Client):
         # api for setting state in the ensemble
         if len(events) == 0:
             events = [EnsembleFailed(ensemble=self.ensemble.id_)]
-        #await self._append_message(self.ensemble.update_snapshot(events))
-       # await self._signal_cancel()  # let ensemble know it should stop
+        # await self._append_message(self.ensemble.update_snapshot(events))
+
+    # await self._signal_cancel()  # let ensemble know it should stop
 
     @property
     def ensemble(self) -> Ensemble:
         return self._ensemble
 
     async def process_message(self, msg: str):
-        event = event_from_json_from_evaluator(msg)
+        try:
+            event = event_from_json(msg)
+        except BaseException as e:
+            print(f"COULDNT DESERIALIZE {e!s}")
         match event:
             case EEDone():
-                #print("Minimal evaluator got EEDone")
+                # print("Minimal evaluator got EEDone")
                 self._received_evaluator_done.set()
             case ForwardModelStepChecksum():
-                #print("Minimal evaluator got fm checksum")
+                # print("Minimal evaluator got fm checksum")
                 await self._evaluator_to_scheduler_queue.put(event)
-            case EESnapshotUpdate()|EESnapshot():
-                #print("Minimal evaluator got EESnapshotUpdate")
+            case EESnapshotUpdate() | EESnapshot():
+                # print("Minimal evaluator got EESnapshotUpdate")
                 print(f"Minimal evaluator merging due to new snapshot {event.snapshot}")
-                self._ensemble.snapshot.merge_snapshot(EnsembleSnapshot.from_nested_dict(event.snapshot))
+                self._ensemble.snapshot.merge_snapshot(
+                    EnsembleSnapshot.from_nested_dict(event.snapshot)
+                )
+            case _:
+                print(f"Unhandled event {event=}")
 
+    # JONAK REMEMBER TO IMPLEMENT THS
+    # self._router_socket: zmq.asyncio.Socket = zmq_context.socket(zmq.ROUTER)
+    # self._router_socket.setsockopt(zmq.LINGER, 0)
+    # if self._config.server_public_key and self._config.server_secret_key:
+    #    self._router_socket.curve_secretkey = self._config.server_secret_key
+    #    self._router_socket.curve_publickey = self._config.server_public_key
+    #    self._router_socket.curve_server = True
 
-      # JONAK REMEMBER TO IMPLEMENT THS
-      # self._router_socket: zmq.asyncio.Socket = zmq_context.socket(zmq.ROUTER)
-      #self._router_socket.setsockopt(zmq.LINGER, 0)
-      #if self._config.server_public_key and self._config.server_secret_key:
-      #    self._router_socket.curve_secretkey = self._config.server_secret_key
-      #    self._router_socket.curve_publickey = self._config.server_public_key
-      #    self._router_socket.curve_server = True  
-
-
-      #event = EETerminated(ensemble=self._ensemble.id_)
-      # await self._events_to_send.put(event)
-      #
-      #
-
+    # event = EETerminated(ensemble=self._ensemble.id_)
+    # await self._events_to_send.put(event)
+    #
+    #
 
     async def run_and_get_successful_realizations(self) -> list[int]:
         await self._received_evaluator_done.wait()

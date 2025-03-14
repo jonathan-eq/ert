@@ -1,9 +1,9 @@
 use chrono::{DateTime, NaiveDateTime, Utc};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::events::types::RealId;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct RealizationPending {
     pub real: RealId,
     pub time: NaiveDateTime,
@@ -12,7 +12,7 @@ pub struct RealizationPending {
     pub exec_hosts: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct RealizationRunning {
     pub real: RealId,
     pub time: NaiveDateTime,
@@ -21,7 +21,7 @@ pub struct RealizationRunning {
     pub exec_hosts: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct RealizationSuccess {
     pub real: RealId,
     pub time: NaiveDateTime,
@@ -30,7 +30,7 @@ pub struct RealizationSuccess {
     pub exec_hosts: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct RealizationFailed {
     pub real: RealId,
     pub time: NaiveDateTime,
@@ -40,7 +40,7 @@ pub struct RealizationFailed {
     pub message: Option<String>, // Only used for JobState.FAILED
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct RealizationUnknown {
     pub real: RealId,
     pub time: NaiveDateTime,
@@ -48,7 +48,7 @@ pub struct RealizationUnknown {
     pub queue_event_type: Option<String>,
     pub exec_hosts: Option<String>,
 }
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct RealizationWaiting {
     pub real: RealId,
     pub time: NaiveDateTime,
@@ -57,7 +57,7 @@ pub struct RealizationWaiting {
     pub exec_hosts: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct RealizationTimeout {
     pub real: RealId,
     pub time: NaiveDateTime,

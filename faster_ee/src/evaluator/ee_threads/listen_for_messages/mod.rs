@@ -56,7 +56,6 @@ impl EE {
                 } else if decoded_sender.starts_with("dispatch") {
                     self.handle_dispatch(&sender, &decoded_sender, &decoded_payload);
                 } else if decoded_sender.starts_with("ert") {
-                    debug!("HANDLING ACTUAL ERT CLIENT!");
                     self.handle_ert(&sender, &decoded_sender, &decoded_payload);
                 } else {
                     eprintln!("Received msg from unknown sender '{}'", &decoded_sender);

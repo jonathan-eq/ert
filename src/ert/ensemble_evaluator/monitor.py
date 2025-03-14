@@ -41,7 +41,10 @@ class Monitor(Client):
         )
 
     async def process_message(self, msg: str) -> None:
-        event = event_from_json(msg)
+        try:
+            event = event_from_json(msg)
+        except BaseException:
+            print("monitor couldnt deserialize")
 
         await self._event_queue.put(event)
 

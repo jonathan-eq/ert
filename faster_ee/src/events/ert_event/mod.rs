@@ -1,12 +1,11 @@
 pub mod realization_event;
 use chrono::NaiveDateTime;
 pub use realization_event::*;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use super::snapshot_event::EESnapshotUpdateEvent;
 
-#[derive(Debug, Deserialize)]
-#[serde(tag = "event_type")]
+#[derive(Debug, Deserialize, Serialize)]
 pub enum ErtEvent {
     #[serde(rename = "realization.waiting")]
     RealizationWaiting(RealizationWaiting),
