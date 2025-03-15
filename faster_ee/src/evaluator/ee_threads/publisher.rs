@@ -1,9 +1,11 @@
 use log::{debug, error, info};
 
 use super::super::QueueEvents;
-use super::do_heartbeat_clients::HeartBeat;
-use crate::evaluator::EESnapshotUpdateEvent;
+use super::do_heartbeat_clients::HEARTBEAT;
+use crate::events::client_event::ClientEvent;
 use crate::events::dispatcher_event::checksum_event::ForwardModelStepChecksum;
+use crate::events::ert_event::ErtEvent;
+use crate::events::snapshot_event::EESnapshotEvent;
 use crate::EE;
 use std::sync::Arc;
 use std::thread;
@@ -24,22 +26,40 @@ impl EE {
                     error!("Found no Ert identity to forward checksum to");
                 }
             }
-            QueueEvents::HeartBeat(inner) => {
+            QueueEvents::HeartBeat => {
                 if let Some(ert_identity) = self._ert_identity.read().unwrap().clone() {
-                    self._handle_heartbeat_event(&ert_identity, inner);
+                    self._handle_heartbeat_event(&ert_identity);
                 }
             }
             QueueEvents::EnsembleSnapshot(inner) => {
                 if let Some(ert_identity) = self._ert_identity.read().unwrap().clone() {
-                    let json_str = &serde_json::to_string(&inner).unwrap();
+                    let json_str =
+                        &serde_json::to_string(&ErtEvent::EESnapshotUpdate(inner.clone())).unwrap();
                     debug!("Sending EESnapshotUpdate to Ert identity {}", json_str);
+                    self._send_bytes_to_identity(&ert_identity, &json_str.as_bytes().to_vec());
+                    debug!("Finished sending EESnapshot")
+                }
+            }
+            QueueEvents::UserCancelledEE(inner) => {
+                if let Some(ert_identity) = self._ert_identity.read().unwrap().clone() {
+                    let json_str = &serde_json::to_string(&inner).unwrap();
+                    debug!("Sending UserCancelledEE to Ert identity {}", json_str);
+                    self._send_bytes_to_identity(&ert_identity, &json_str.as_bytes().to_vec());
+                }
+            }
+            QueueEvents::UserDone(inner_event) => {
+                if let Some(ert_identity) = self._ert_identity.read().unwrap().clone() {
+                    let json_str =
+                        &serde_json::to_string(&ClientEvent::EEUserDone(inner_event.clone()))
+                            .unwrap();
+                    debug!("Sending UserDone to Ert identity {}", json_str);
                     self._send_bytes_to_identity(&ert_identity, &json_str.as_bytes().to_vec());
                 }
             }
         }
     }
     pub fn _publisher(self: Arc<Self>) {
-        while self.is_running() {
+        while self.is_running() | !self._events_to_send.is_empty() {
             if let Some(event) = self._events_to_send.pop() {
                 self._inform_ert(&event);
 
@@ -47,15 +67,15 @@ impl EE {
 
                 for identity in &identities {
                     match &event {
-                        QueueEvents::HeartBeat(event) => {
-                            self._handle_heartbeat_event(identity, event)
-                        }
+                        QueueEvents::HeartBeat => self._handle_heartbeat_event(identity),
                         QueueEvents::EnsembleSnapshot(event) => {
                             self._handle_snapshot_event(identity, event)
                         }
                         QueueEvents::Checksum(event) => {
                             self._handle_checksum_event(identity, event)
                         }
+                        QueueEvents::UserCancelledEE(_) => {}
+                        QueueEvents::UserDone(_) => {}
                     }
                 }
             } else {
@@ -66,18 +86,21 @@ impl EE {
     fn _handle_snapshot_event(
         self: &Arc<Self>,
         identity: &Vec<u8>,
-        snapshot_event: &EESnapshotUpdateEvent,
+        snapshot_event: &EESnapshotEvent,
     ) {
-        self._send_bytes_to_identity(
-            identity,
-            &serde_json::to_string(&snapshot_event)
-                .unwrap()
-                .as_bytes()
-                .to_vec(),
-        );
+        debug!("SENDING EESNAPSHOT UPDATE TO CLIENT");
+        match &serde_json::to_string(&ErtEvent::EESnapshotUpdate(snapshot_event.clone())) {
+            Ok(snapshot_event_str) => {
+                self._send_bytes_to_identity(identity, &snapshot_event_str.as_bytes().to_vec());
+                debug!("FINISHED SENDING EESNAPSHOT UPDATE TO CLIENT");
+            }
+            Err(err) => {
+                error!("Failed deserializing EESnapshotEvent {}", err.to_string());
+            }
+        }
     }
-    fn _handle_heartbeat_event(self: &Arc<Self>, identity: &Vec<u8>, heartbeat_event: &HeartBeat) {
-        self._send_bytes_to_identity(identity, &heartbeat_event.msg.as_bytes().to_vec());
+    fn _handle_heartbeat_event(self: &Arc<Self>, identity: &Vec<u8>) {
+        self._send_bytes_to_identity(identity, &HEARTBEAT.to_vec());
     }
     fn _handle_checksum_event(
         self: &Arc<Self>,

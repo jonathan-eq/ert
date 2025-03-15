@@ -5,7 +5,8 @@ use log::{debug, error, info, warn};
 use crate::{
     evaluator::QueueEvents,
     events::{
-        client_event::ClientEvent, dispatcher_event::DispatcherEvent, ert_event::ErtEvent, Event,
+        client_event::ClientEvent, dispatcher_event::DispatcherEvent, ert_event::ErtEvent,
+        EECancelled, Event,
     },
     EE,
 };
@@ -40,12 +41,21 @@ impl EE {
     pub fn _handle_event_from_client(self: &Arc<Self>, json_string: &String) {
         match serde_json::from_str::<ClientEvent>(json_string.as_str()) {
             Ok(event) => match event {
-                ClientEvent::EEUserCancel(_) => {
+                ClientEvent::EEUserCancel(event) => {
                     info!("Client asked to cancel.");
-                    self._signal_cancel();
+                    self._signal_cancel(EECancelled {
+                        ensemble_id: self
+                            ._ensemble_id
+                            .read()
+                            .unwrap()
+                            .clone()
+                            .unwrap_or_default(),
+                        monitor: Some(event.monitor.clone()),
+                    });
                 }
-                ClientEvent::EEUserDone(_) => {
+                ClientEvent::EEUserDone(event) => {
                     info!("Client signalled done");
+                    self._events_to_send.push(QueueEvents::UserDone(event));
                     self.stop();
                 }
             },
@@ -70,7 +80,7 @@ impl EE {
                 | ErtEvent::RealizationWaiting(event) => {
                     self._events.push(Event::RealizationEvent(event));
                 }
-                ErtEvent::EESnapshotUpdate(event) => {
+                ErtEvent::EESnapshotUpdate(event) | ErtEvent::EEFullSnapshot(event) => {
                     warn!("GOT EE SNAPSHOT FROM ERT");
                     *self._ensemble_id.write().unwrap() = Some(event.ensemble.clone());
                     self._events.push(Event::EESnapshotUpdateEvent(event));

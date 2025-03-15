@@ -12,7 +12,7 @@ use super::DestinationHandler;
 
 impl EE {
     pub fn _batch_events_into_buffer(self: Arc<Self>) {
-        while self.is_running() {
+        while self.is_running() | !self._events.is_empty() {
             let mut batch: HashMap<DestinationHandler, Vec<Event>> = HashMap::new();
             let start_time = Utc::now();
             let mut events_in_map_count: i64 = 0;

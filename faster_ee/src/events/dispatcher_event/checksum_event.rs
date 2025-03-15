@@ -16,15 +16,9 @@ pub struct _Checksum {
 
 #[derive(Deserialize, Debug, Serialize)]
 pub struct ForwardModelStepChecksum {
-    #[serde(default = "default_value")]
-    event_type: String,
     time: DateTime<Utc>,
     ensemble: Option<String>,
     real: String,
     #[serde(default)]
     checksums: HashMap<String, HashMap<String, _Checksum>>,
-}
-
-fn default_value() -> String {
-    "forward_model_step.checksum".to_string()
 }

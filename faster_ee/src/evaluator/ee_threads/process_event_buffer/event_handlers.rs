@@ -1,11 +1,14 @@
 use std::sync::Arc;
 
-use log::{debug, error};
+use log::debug;
 
 use crate::{
     evaluator::{EnsembleState, QueueEvents},
-    events::{snapshot_event::EESnapshotUpdateEvent, Event},
-    snapshots::EnsembleSnapshot,
+    events::{
+        snapshot_event::{EESnapshotEvent, EESnapshotUpdateEvent},
+        EECancelled, Event,
+    },
+    snapshots::{fm_step_snapshot::FMStepSnapshot, EnsembleSnapshot},
 };
 
 use super::EE;
@@ -30,18 +33,56 @@ impl EE {
             EnsembleState::Failed | EnsembleState::Cancelled => {}
             _ => {
                 self._create_update_snapshot_and_apply_to_main_snapshot(events);
-                self._signal_cancel();
+                self._signal_cancel(EECancelled {
+                    ensemble_id: self
+                        ._ensemble_id
+                        .read()
+                        .unwrap()
+                        .clone()
+                        .unwrap_or_default(),
+                    monitor: None,
+                });
             }
         }
     }
-    pub fn _signal_cancel(self: &Arc<Self>) {
-        error!("SIGNAL_CANCEL NOT IMPLEMENTED YET!");
+    pub fn _signal_cancel(self: &Arc<Self>, cancelled_event: EECancelled) {
+        self._events_to_send
+            .push(QueueEvents::UserCancelledEE(cancelled_event));
+        self.stop()
     }
     pub fn _stopped_handler(self: &Arc<Self>, events: &Vec<Event>) {
         if *self._ensemble_status.read().unwrap() == EnsembleState::Failed {
             return;
         }
+        self._send_run_statistics_to_ert();
         self._create_update_snapshot_and_apply_to_main_snapshot(events);
+    }
+    fn _send_run_statistics_to_ert(self: &Arc<Self>) {
+        let mut max_memory_usage = -1;
+        let mut overspent_cpu_msgs: Vec<String> = Vec::new();
+        for ((real_id, _), fm_snapshot) in self
+            ._main_snapshot
+            .read()
+            .unwrap()
+            .clone()
+            ._fm_step_snapshots
+        {
+            max_memory_usage = std::cmp::max(
+                max_memory_usage,
+                fm_snapshot.max_memory_usage.unwrap_or_default(),
+            );
+            if let Some(error_msg) = self.detect_overspent_cpu(4, &real_id, &fm_snapshot) {
+                overspent_cpu_msgs.push(error_msg);
+            }
+        }
+    }
+    fn detect_overspent_cpu(
+        self: &Arc<Self>,
+        num_cpu: i64,
+        real_id: &String,
+        fm_step: &FMStepSnapshot,
+    ) -> Option<String> {
+        Some(String::from("yes"))
     }
     pub fn _cancelled_handler(self: &Arc<Self>, events: &Vec<Event>) {
         if !(*self._ensemble_status.read().unwrap() != EnsembleState::Failed) {
@@ -79,7 +120,7 @@ impl EE {
     }
 
     fn _append_message(self: &Arc<Self>, snapshot_update_event: EnsembleSnapshot) {
-        let event = EESnapshotUpdateEvent::new(
+        let event = EESnapshotEvent::new(
             snapshot_update_event,
             self._ensemble_id
                 .read()

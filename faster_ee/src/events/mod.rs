@@ -1,6 +1,7 @@
 use dispatcher_event::fm_step_event::RealForwardModelStep;
 use ensemble_event::RealEnsembleEvent;
-use snapshot_event::EESnapshotUpdateEvent;
+use serde::Serialize;
+use snapshot_event::EESnapshotEvent;
 
 use ert_event::RealRealization;
 pub mod client_event;
@@ -14,5 +15,11 @@ pub enum Event {
     EnsembleEvent(RealEnsembleEvent),
     FMEvent(RealForwardModelStep),
     RealizationEvent(RealRealization),
-    EESnapshotUpdateEvent(EESnapshotUpdateEvent),
+    EESnapshotUpdateEvent(EESnapshotEvent),
+}
+
+#[derive(Serialize, Debug)]
+pub struct EECancelled {
+    pub ensemble_id: String,
+    pub monitor: Option<String>,
 }

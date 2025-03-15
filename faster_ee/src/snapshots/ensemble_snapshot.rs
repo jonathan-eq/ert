@@ -12,10 +12,9 @@ use crate::events::dispatcher_event::fm_step_event::{
 
 use crate::events::ensemble_event::{EnsembleStatus, RealEnsembleEvent};
 use crate::events::ert_event::RealRealization;
-use crate::events::snapshot_event::EESnapshotUpdateEvent;
+use crate::events::snapshot_event::EESnapshotEvent;
 use crate::events::{types::*, Event};
 use crate::update_field_if_set;
-use crate::utils::is_none_or_empty;
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct EnsembleSnapshot {
@@ -63,7 +62,7 @@ impl EnsembleSnapshot {
             }
         };
     }
-    pub fn merge_snapshot(&mut self, event: &EESnapshotUpdateEvent) {
+    pub fn merge_snapshot(&mut self, event: &EESnapshotEvent) {
         self.update_from(&event.snapshot);
     }
     pub fn update_fm_from_event(&mut self, event: &RealForwardModelStep) -> &mut Self {
@@ -90,7 +89,7 @@ impl EnsembleSnapshot {
         let source_snapshot = source_snapshot;
         let mut mutate_snapshot = RealizationSnapshot::new();
         mutate_snapshot.update_from_event(event);
-        self._update_realization(event.get_real_id(), &mutate_snapshot);
+        self._update_realization(event.real.clone(), &mutate_snapshot);
         if event.status == RealizationState::Timeout {
             self._handle_realization_timeout(&mutate_snapshot, event, source_snapshot);
         }
@@ -110,13 +109,13 @@ impl EnsembleSnapshot {
         ));
         for (fm_step_id, source_fm_step_snapshot) in source_snapshot
             ._realization_snapshots
-            .get(&event.get_real_id())
+            .get(&event.real)
             .and_then(|realsnapshot| Some(&realsnapshot.fm_steps))
             .unwrap_or(&HashMap::new())
         {
             if let Some(status_msg) = source_fm_step_snapshot.status.clone() {
                 if status_msg != ForwardModelStepStatus::Failed {
-                    let fm_idx = (event.get_real_id(), fm_step_id.clone());
+                    let fm_idx = (event.real.clone(), fm_step_id.clone());
                     let fm_step_snapshot = self
                         ._fm_step_snapshots
                         .entry(fm_idx)

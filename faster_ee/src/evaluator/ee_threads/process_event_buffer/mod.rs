@@ -7,7 +7,7 @@ use crate::{events::Event, EE};
 
 impl EE {
     pub fn process_event_buffer(self: Arc<Self>) {
-        while self.is_running() {
+        while self.is_running() | !self._batch_processing_queue.is_empty() {
             match self._batch_processing_queue.pop() {
                 Some(batch) => {
                     self._handle_batch(&batch);

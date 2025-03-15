@@ -14,7 +14,7 @@ class ZMQClient:
     def __init__(self, name: bytes):
         socket: zmq.asyncio.Socket = context.socket(zmq.DEALER)
         socket.connect("tcp://localhost:8888")
-        socket.setsockopt_string(zmq.IDENTITY, name.decode("utf-8"))
+        socket.setsockopt(zmq.IDENTITY, name)
         self.socket = socket
         self.name = name
         self.recv_task = asyncio.create_task(self.recv(socket))
@@ -22,6 +22,8 @@ class ZMQClient:
     async def recv(self, socket: zmq.asyncio.Socket):
         while True:
             _, frame = await socket.recv_multipart()
+            if frame in [b"ACK", b"BEAT"]:
+                continue
             print(f"""{self.name} got {frame.decode("utf-8")}""")
 
     async def connect(self):
@@ -54,7 +56,15 @@ async def main():
             }
         ).encode("utf-8")
     )
-    await asyncio.sleep(10)
+    await asyncio.sleep(5)
+    await monitor.send(json.dumps(
+            {
+                "event_type": "ee.user_done",
+                "time": str(datetime.datetime.now(datetime.UTC)),
+                "monitor": "some_monitor_id-4518"
+            }
+        ).encode("utf-8"))
+    await asyncio.sleep(5)
     await ert.disconnect()
     await dispatcher.disconnect()
     await monitor.disconnect()

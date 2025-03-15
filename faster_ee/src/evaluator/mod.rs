@@ -1,9 +1,9 @@
+use crate::events::client_event::EEUserEvent;
 use crate::events::dispatcher_event::checksum_event::ForwardModelStepChecksum;
 
-use crate::events::Event;
+use crate::events::{EECancelled, Event};
 
 use crossbeam::queue::SegQueue;
-use ee_threads::do_heartbeat_clients::HeartBeat;
 use ee_threads::DestinationHandler;
 use log::{error, info};
 
@@ -65,9 +65,11 @@ pub struct EE {
 }
 #[derive(Debug)]
 pub enum QueueEvents {
-    HeartBeat(HeartBeat),
-    EnsembleSnapshot(EESnapshotUpdateEvent),
+    HeartBeat,
+    EnsembleSnapshot(EESnapshotEvent),
     Checksum(ForwardModelStepChecksum),
+    UserCancelledEE(EECancelled),
+    UserDone(EEUserEvent),
 }
 
 impl EE {

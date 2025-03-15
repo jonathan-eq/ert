@@ -2,9 +2,10 @@ pub mod realization_event;
 pub use realization_event::*;
 use serde::{Deserialize, Serialize};
 
-use super::snapshot_event::EESnapshotUpdateEvent;
+use super::snapshot_event::EESnapshotEvent;
 
 #[derive(Debug, Deserialize, Serialize)]
+#[serde(tag = "event_type")]
 pub enum ErtEvent {
     #[serde(rename = "realization.waiting")]
     RealizationWaiting(RealRealization),
@@ -21,5 +22,7 @@ pub enum ErtEvent {
     #[serde(rename = "realization.timeout")]
     RealizationTimeout(RealRealization),
     #[serde(rename = "ee.snapshot_update")]
-    EESnapshotUpdate(EESnapshotUpdateEvent),
+    EESnapshotUpdate(EESnapshotEvent),
+    #[serde(rename = "ee.snapshot")]
+    EEFullSnapshot(EESnapshotEvent),
 }
