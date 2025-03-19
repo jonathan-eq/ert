@@ -1,5 +1,4 @@
 pub mod event_handlers;
-mod test;
 use std::{collections::HashMap, sync::Arc, thread, time::Duration};
 
 use super::DestinationHandler;
@@ -39,6 +38,9 @@ impl EE {
                 }
                 DestinationHandler::EESnapshotUpdate => {
                     self._update_snapshot_handler(&events);
+                }
+                DestinationHandler::EEFullSnapshot => {
+                    self._overwrite_snapshot_handler(&events);
                 }
             };
         }

@@ -1,23 +1,26 @@
 use std::collections::HashMap;
 
+use crate::events::ert_event::realization_event::deserialize_status;
 use crate::events::ert_event::RealRealization;
+use crate::update_field;
 use crate::utils::is_none_or_empty;
 use crate::{events::types::FmStepId, update_field_if_not_empty, update_field_if_set};
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, NaiveDateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use super::fm_step_snapshot::FMStepSnapshot;
 
 #[derive(Clone, Serialize, Debug, PartialEq, Deserialize)]
 pub struct RealizationSnapshot {
-    #[serde(skip_serializing_if = "Option::is_none")]
+    //#[serde(deserialize_with = "deserialize_status")]
+    #[serde(default)]
     pub status: Option<RealizationState>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub active: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub start_time: Option<DateTime<Utc>>,
+    pub start_time: Option<NaiveDateTime>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub end_time: Option<DateTime<Utc>>,
+    pub end_time: Option<NaiveDateTime>,
     #[serde(skip_serializing_if = "is_none_or_empty")]
     pub exec_hosts: Option<String>,
     #[serde(skip_serializing_if = "is_none_or_empty")]
@@ -37,6 +40,7 @@ pub enum RealizationState {
     Unknown,
     Timeout,
 }
+
 impl RealizationState {
     pub fn to_str(self) -> &'static str {
         match self {
@@ -65,23 +69,26 @@ impl RealizationSnapshot {
     }
     pub fn update_from_event(&mut self, event: &RealRealization) -> &mut Self {
         self.exec_hosts = event.exec_hosts.clone();
-        self.status = Some(event.status.clone());
-
-        match event.status {
-            RealizationState::Running => {
-                self.start_time = Some(event.time);
+        if let Some(new_status) = event.status.clone() {
+            self.status = Some(new_status);
+        }
+        if let Some(status) = &self.status {
+            match status {
+                RealizationState::Running => {
+                    self.start_time = Some(event.time);
+                }
+                RealizationState::Failed => {
+                    self.message = event.message.clone();
+                    self.end_time = Some(event.time);
+                }
+                RealizationState::Finished => {
+                    self.end_time = Some(event.time);
+                }
+                RealizationState::Timeout => {
+                    self.end_time = Some(event.time);
+                }
+                _ => {}
             }
-            RealizationState::Failed => {
-                self.message = event.message.clone();
-                self.end_time = Some(event.time);
-            }
-            RealizationState::Finished => {
-                self.end_time = Some(event.time);
-            }
-            RealizationState::Timeout => {
-                self.end_time = Some(event.time);
-            }
-            _ => {}
         }
         self
     }
@@ -92,6 +99,6 @@ impl RealizationSnapshot {
         update_field_if_not_empty!(self, other_snapshot, fm_steps);
         update_field_if_set!(self, other_snapshot, message);
         update_field_if_set!(self, other_snapshot, start_time);
-        update_field_if_set!(self, other_snapshot, status);
+        update_field!(self, other_snapshot, status);
     }
 }

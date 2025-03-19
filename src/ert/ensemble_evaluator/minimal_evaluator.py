@@ -66,7 +66,7 @@ class EvaluatorClient(Client):
     async def start_evaluating(self) -> None:
         await self.send(
             event_to_json(
-                EESnapshotUpdate(
+                EESnapshot(
                     ensemble=self._ensemble.id_,
                     snapshot=self._ensemble.snapshot.to_dict(),
                 )
@@ -134,7 +134,7 @@ class EvaluatorClient(Client):
         try:
             event = event_from_json(msg)
         except BaseException as e:
-            print(f"COULDNT DESERIALIZE {e!s}")
+            print(f"COULDNT DESERIALIZE '{msg}'{e}")
         match event:
             case EEDone():
                 # print("Minimal evaluator got EEDone")

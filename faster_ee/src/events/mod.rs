@@ -16,6 +16,7 @@ pub enum Event {
     FMEvent(RealForwardModelStep),
     RealizationEvent(RealRealization),
     EESnapshotUpdateEvent(EESnapshotEvent),
+    EEFullSnapshotEvent(EESnapshotEvent),
 }
 
 #[derive(Serialize, Debug)]

@@ -22,7 +22,8 @@ impl EE {
                 events_in_map_count = events_in_map_count + 1;
                 match self._events.pop() {
                     Some(event) => match event {
-                        Event::FMEvent(_) => {
+                        Event::FMEvent(ref inner_evt) => {
+                            debug!("Adding FMEvent to batch {:#?}", inner_evt);
                             batch
                                 .entry(DestinationHandler::FMHandler)
                                 .or_default()
@@ -45,6 +46,7 @@ impl EE {
                                     EnsembleStatus::Succeeded => {
                                         DestinationHandler::EnsembleSucceeded
                                     }
+                                    EnsembleStatus::Unknown => DestinationHandler::EnsembleStarted,
                                 })
                                 .or_default()
                                 .push(event);
@@ -55,6 +57,13 @@ impl EE {
                                 .or_default()
                                 .push(event);
                             warn!("We got EESnapshotUpdateEvent in batch_events_into_buffer. This should not happen");
+                        }
+                        Event::EEFullSnapshotEvent(_) => {
+                            batch
+                                .entry(DestinationHandler::EEFullSnapshot)
+                                .or_default()
+                                .push(event);
+                            warn!("We got EEFullSnapshotEvent in buffer. This might happen.");
                         }
                     },
                     None => {

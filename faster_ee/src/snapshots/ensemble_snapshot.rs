@@ -55,7 +55,7 @@ impl EnsembleSnapshot {
                 return self;
             }
             Event::FMEvent(inner_event) => return self.update_fm_from_event(inner_event),
-            Event::EESnapshotUpdateEvent(inner_event) => {
+            Event::EESnapshotUpdateEvent(inner_event) | Event::EEFullSnapshotEvent(inner_event) => {
                 self.merge_snapshot(inner_event);
                 debug!("AFTER MERGIN!{:#?}", self);
                 return self;
@@ -90,9 +90,12 @@ impl EnsembleSnapshot {
         let mut mutate_snapshot = RealizationSnapshot::new();
         mutate_snapshot.update_from_event(event);
         self._update_realization(event.real.clone(), &mutate_snapshot);
-        if event.status == RealizationState::Timeout {
-            self._handle_realization_timeout(&mutate_snapshot, event, source_snapshot);
+        if let Some(status) = &event.status {
+            if *status == RealizationState::Timeout {
+                self._handle_realization_timeout(&mutate_snapshot, event, source_snapshot);
+            }
         }
+
         return self;
     }
     fn _handle_realization_timeout(

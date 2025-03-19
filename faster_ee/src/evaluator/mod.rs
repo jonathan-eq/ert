@@ -67,6 +67,7 @@ pub struct EE {
 pub enum QueueEvents {
     HeartBeat,
     EnsembleSnapshot(EESnapshotEvent),
+    FullEnsembleSnapshot(EESnapshotEvent),
     Checksum(ForwardModelStepChecksum),
     UserCancelledEE(EECancelled),
     UserDone(EEUserEvent),

@@ -1,54 +1,70 @@
-use chrono::{DateTime, Utc};
-use serde::{Deserialize, Deserializer, Serialize};
+use std::str::FromStr;
+
+use chrono::{DateTime, NaiveDateTime, Utc};
+use serde::{de, Deserialize, Deserializer, Serialize};
 use serde_json::Value;
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Serialize)]
 pub struct RealForwardModelStep {
-    #[serde(deserialize_with = "deserialize_status")]
-    #[serde(default)]
-    pub status: ForwardModelStepStatus,
-    pub time: DateTime<Utc>,
+    pub status: Option<ForwardModelStepStatus>,
+    pub time: NaiveDateTime,
     pub fm_step: String,
-    #[serde(rename = "real")]
     pub real_id: String,
-    #[serde(rename = "std_out")]
     pub stdout: Option<String>,
-    #[serde(rename = "std_err")]
     pub stderr: Option<String>,
     pub current_memory_usage: Option<i64>,
     pub max_memory_usage: Option<i64>,
     pub cpu_seconds: Option<f64>,
     pub error: Option<String>,
 }
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
 pub enum ForwardModelStepStatus {
-    Started,
     Running,
     Finished,
     Failed,
+    Pending,
 }
 
-impl Default for ForwardModelStepStatus {
-    fn default() -> Self {
-        ForwardModelStepStatus::Started
-    }
-}
+impl<'de> Deserialize<'de> for RealForwardModelStep {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        #[derive(Deserialize)]
+        struct RawStep {
+            event_type: String,
+            time: NaiveDateTime,
+            fm_step: String,
+            real: String,
+            std_out: Option<String>,
+            std_err: Option<String>,
+            current_memory_usage: Option<i64>,
+            max_memory_usage: Option<i64>,
+            cpu_seconds: Option<f64>,
+            error: Option<String>,
+        }
 
-fn deserialize_status<'de, D>(deserializer: D) -> Result<ForwardModelStepStatus, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    let map: Value = Deserialize::deserialize(deserializer)?;
-
-    if let Some(event_type) = map.get("event_type").and_then(Value::as_str) {
-        return match event_type {
-            "forward_model_step.start" => Ok(ForwardModelStepStatus::Started),
-            "forward_model_step.running" => Ok(ForwardModelStepStatus::Running),
-            "forward_model_step.success" => Ok(ForwardModelStepStatus::Finished),
-            "forward_model_step.failure" => Ok(ForwardModelStepStatus::Failed),
-            _ => Err(serde::de::Error::custom("Unknown event_type")),
+        let raw = RawStep::deserialize(deserializer)?;
+        let status = match raw.event_type.as_str() {
+            "forward_model_step.running" => Some(ForwardModelStepStatus::Running),
+            "forward_model_step.finished" => Some(ForwardModelStepStatus::Finished),
+            "forward_model_step.failed" => Some(ForwardModelStepStatus::Failed),
+            "forward_model_step.pending" => Some(ForwardModelStepStatus::Pending),
+            _ => None,
         };
-    }
 
-    Err(serde::de::Error::missing_field("event_type"))
+        Ok(RealForwardModelStep {
+            status,
+            time: raw.time,
+            fm_step: raw.fm_step,
+            real_id: raw.real,
+            stdout: raw.std_out,
+            stderr: raw.std_err,
+            current_memory_usage: raw.current_memory_usage,
+            max_memory_usage: raw.max_memory_usage,
+            cpu_seconds: raw.cpu_seconds,
+            error: raw.error,
+        })
+    }
 }

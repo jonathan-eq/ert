@@ -4,6 +4,7 @@ use super::super::QueueEvents;
 use super::do_heartbeat_clients::HEARTBEAT;
 use crate::events::client_event::ClientEvent;
 use crate::events::dispatcher_event::checksum_event::ForwardModelStepChecksum;
+use crate::events::dispatcher_event::DispatcherEvent;
 use crate::events::ert_event::ErtEvent;
 use crate::events::snapshot_event::EESnapshotEvent;
 use crate::EE;
@@ -17,11 +18,7 @@ impl EE {
             QueueEvents::Checksum(inner) => {
                 // Send checksum to ert
                 if let Some(ert_identity) = self._ert_identity.read().unwrap().clone() {
-                    info!("Sending checksum to Ert identity");
-                    self._send_bytes_to_identity(
-                        &ert_identity,
-                        &serde_json::to_string(&inner).unwrap().as_bytes().to_vec(),
-                    );
+                    self._handle_checksum_event(&ert_identity, inner);
                 } else {
                     error!("Found no Ert identity to forward checksum to");
                 }
@@ -56,6 +53,15 @@ impl EE {
                     self._send_bytes_to_identity(&ert_identity, &json_str.as_bytes().to_vec());
                 }
             }
+            QueueEvents::FullEnsembleSnapshot(inner) => {
+                if let Some(ert_identity) = self._ert_identity.read().unwrap().clone() {
+                    let json_str =
+                        &serde_json::to_string(&ErtEvent::EEFullSnapshot(inner.clone())).unwrap();
+                    debug!("Sending Full Snapshot to Ert identity {}", json_str);
+                    self._send_bytes_to_identity(&ert_identity, &json_str.as_bytes().to_vec());
+                    debug!("Finished sending EESnapshot")
+                }
+            }
         }
     }
     pub fn _publisher(self: Arc<Self>) {
@@ -76,6 +82,9 @@ impl EE {
                         }
                         QueueEvents::UserCancelledEE(_) => {}
                         QueueEvents::UserDone(_) => {}
+                        QueueEvents::FullEnsembleSnapshot(event) => {
+                            self._handle_full_snapshot_event(identity, event)
+                        }
                     }
                 }
             } else {
@@ -99,6 +108,22 @@ impl EE {
             }
         }
     }
+    fn _handle_full_snapshot_event(
+        self: &Arc<Self>,
+        identity: &Vec<u8>,
+        snapshot_event: &EESnapshotEvent,
+    ) {
+        debug!("SENDING FULL EESNAPSHOT TO CLIENT");
+        match &serde_json::to_string(&ErtEvent::EEFullSnapshot(snapshot_event.clone())) {
+            Ok(snapshot_event_str) => {
+                self._send_bytes_to_identity(identity, &snapshot_event_str.as_bytes().to_vec());
+                debug!("FINISHED SENDING FULL EESNAPSHOT TO CLIENT");
+            }
+            Err(err) => {
+                error!("Failed deserializing EESnapshotEvent {}", err.to_string());
+            }
+        }
+    }
     fn _handle_heartbeat_event(self: &Arc<Self>, identity: &Vec<u8>) {
         self._send_bytes_to_identity(identity, &HEARTBEAT.to_vec());
     }
@@ -107,13 +132,16 @@ impl EE {
         identity: &Vec<u8>,
         checksum_event: &ForwardModelStepChecksum,
     ) {
-        self._send_bytes_to_identity(
-            identity,
-            &serde_json::to_string(checksum_event)
-                .unwrap()
-                .as_bytes()
-                .to_vec(),
-        );
+        match serde_json::to_string(&DispatcherEvent::ForwardModelStepChecksum(
+            checksum_event.clone(),
+        )) {
+            Ok(checksum_event_str) => {
+                self._send_bytes_to_identity(identity, &checksum_event_str.as_bytes().to_vec());
+            }
+            Err(err) => {
+                error!("Failed serializing checksum {}", err.to_string());
+            }
+        }
     }
     pub fn _send_bytes_to_identity(self: &Arc<Self>, identity: &Vec<u8>, bytes: &Vec<u8>) {
         let socket = self._router_socket.lock().unwrap();

@@ -1,12 +1,12 @@
 use checksum_event::ForwardModelStepChecksum;
 use fm_step_event::RealForwardModelStep;
 pub mod checksum_event;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 pub mod fm_step_event;
 
 use super::ensemble_event::RealEnsembleEvent;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(tag = "event_type")]
 pub enum DispatcherEvent {
     #[serde(rename = "forward_model_step.start")]

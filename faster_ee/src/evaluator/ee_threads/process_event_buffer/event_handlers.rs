@@ -105,6 +105,19 @@ impl EE {
         debug!("after merging{:#?}", self._main_snapshot.read().unwrap());
         self._append_message(self._main_snapshot.read().unwrap().clone()); // SHOULD BE FULL SNAPSHOT EVENT!
     }
+
+    pub fn _overwrite_snapshot_handler(self: &Arc<Self>, events: &Vec<Event>) {
+        for event in events {
+            if let Event::EEFullSnapshotEvent(ee_snapshot_update_event) = event {
+                self._main_snapshot
+                    .write()
+                    .unwrap()
+                    .update_from(&ee_snapshot_update_event.snapshot);
+            }
+        }
+        debug!("after merging{:#?}", self._main_snapshot.read().unwrap());
+        self._append_full_message(self._main_snapshot.read().unwrap().clone()); // SHOULD BE FULL SNAPSHOT EVENT!
+    }
     pub fn _create_update_snapshot_and_apply_to_main_snapshot(
         self: &Arc<Self>,
         events: &Vec<Event>,
@@ -130,5 +143,17 @@ impl EE {
         );
         self._events_to_send
             .push(QueueEvents::EnsembleSnapshot(event));
+    }
+    fn _append_full_message(self: &Arc<Self>, snapshot_update_event: EnsembleSnapshot) {
+        let event = EESnapshotEvent::new(
+            snapshot_update_event,
+            self._ensemble_id
+                .read()
+                .unwrap()
+                .clone()
+                .unwrap_or_default(),
+        );
+        self._events_to_send
+            .push(QueueEvents::FullEnsembleSnapshot(event));
     }
 }

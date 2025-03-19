@@ -13,6 +13,7 @@ use crate::{
 
 impl EE {
     pub fn _handle_event_from_dispatcher(self: &Arc<Self>, json_string: &String) {
+        debug!("Handling event from dispatcher {}", json_string);
         match serde_json::from_str::<DispatcherEvent>(json_string.as_str()) {
             Ok(event) => match event {
                 DispatcherEvent::ForwardModelStepChecksum(event) => {
@@ -68,7 +69,6 @@ impl EE {
         }
     }
     pub fn _handle_event_from_ert(self: &Arc<Self>, json_string: &String) {
-        debug!("HANDLING EVENT FROM ERT {}", json_string);
         match serde_json::from_str::<ErtEvent>(json_string.as_str()) {
             Ok(event) => match event {
                 ErtEvent::RealizationFailed(event)
@@ -80,10 +80,15 @@ impl EE {
                 | ErtEvent::RealizationWaiting(event) => {
                     self._events.push(Event::RealizationEvent(event));
                 }
-                ErtEvent::EESnapshotUpdate(event) | ErtEvent::EEFullSnapshot(event) => {
-                    warn!("GOT EE SNAPSHOT FROM ERT");
+                ErtEvent::EESnapshotUpdate(event) => {
+                    warn!("GOT EE SNAPSHOTUpdate FROM ERT");
                     *self._ensemble_id.write().unwrap() = Some(event.ensemble.clone());
                     self._events.push(Event::EESnapshotUpdateEvent(event));
+                }
+                ErtEvent::EEFullSnapshot(event) => {
+                    warn!("GOT EE SNAPSHOT FROM ERT");
+                    *self._ensemble_id.write().unwrap() = Some(event.ensemble.clone());
+                    self._events.push(Event::EEFullSnapshotEvent(event));
                 }
             },
             Err(err) => {

@@ -13,4 +13,5 @@ pub enum DestinationHandler {
     EnsembleCancelled,
     EnsembleFailed,
     EESnapshotUpdate,
+    EEFullSnapshot,
 }

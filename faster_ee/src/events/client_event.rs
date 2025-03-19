@@ -1,10 +1,10 @@
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, NaiveDateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct EEUserEvent {
     pub monitor: String,
-    pub time: DateTime<Utc>,
+    pub time: NaiveDateTime,
 }
 
 #[derive(Debug, Deserialize, Serialize)]

@@ -1,17 +1,17 @@
 use crate::events::dispatcher_event::fm_step_event::{
     ForwardModelStepStatus, RealForwardModelStep,
 };
-use crate::update_field_if_set;
 use crate::utils::is_none_or_empty;
-use chrono::{DateTime, Utc};
+use crate::{update_field, update_field_if_set};
+use chrono::{DateTime, NaiveDateTime, Utc};
 use serde::{Deserialize, Serialize};
 #[derive(Clone, Serialize, Debug, PartialEq, Deserialize)]
 pub struct FMStepSnapshot {
-    #[serde(skip_serializing_if = "Option::is_none")]
+    //#[serde(deserialize_with = "deserialize_status")]
     pub status: Option<ForwardModelStepStatus>,
-    pub start_time: Option<DateTime<Utc>>,
+    pub start_time: Option<NaiveDateTime>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub end_time: Option<DateTime<Utc>>,
+    pub end_time: Option<NaiveDateTime>,
     #[serde(skip_serializing_if = "is_none_or_empty")]
     pub index: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -51,7 +51,7 @@ impl FMStepSnapshot {
         }
     }
     pub fn update_from(&mut self, other_snapshot: &Self) {
-        update_field_if_set!(self, other_snapshot, status);
+        update_field!(self, other_snapshot, status);
         update_field_if_set!(self, other_snapshot, index);
         update_field_if_set!(self, other_snapshot, cpu_seconds);
         update_field_if_set!(self, other_snapshot, current_memory_usage);
@@ -64,26 +64,28 @@ impl FMStepSnapshot {
         update_field_if_set!(self, other_snapshot, stdout);
     }
     pub fn update_from_event(&mut self, event: &RealForwardModelStep) -> &mut Self {
-        self.status = Some(event.status.clone());
         self.index = Some(event.fm_step.clone());
-        match event.status {
-            ForwardModelStepStatus::Started => {
-                self.start_time = Some(event.time);
-                self.stdout = event.stdout.clone();
-                self.stderr = event.stderr.clone();
-            }
-            ForwardModelStepStatus::Running => {
-                self.current_memory_usage = event.current_memory_usage;
-                self.max_memory_usage = event.max_memory_usage;
-                self.cpu_seconds = event.cpu_seconds;
-            }
-            ForwardModelStepStatus::Finished => {
-                self.end_time = Some(event.time);
-                self.error = Some(String::new());
-            }
-            ForwardModelStepStatus::Failed => {
-                self.end_time = Some(event.time);
-                self.error = event.error.clone();
+        if let Some(ref status) = event.status {
+            self.status = Some(status.clone());
+            match status {
+                ForwardModelStepStatus::Pending => {
+                    self.start_time = Some(event.time);
+                    self.stdout = event.stdout.clone();
+                    self.stderr = event.stderr.clone();
+                }
+                ForwardModelStepStatus::Running => {
+                    self.current_memory_usage = event.current_memory_usage;
+                    self.max_memory_usage = event.max_memory_usage;
+                    self.cpu_seconds = event.cpu_seconds;
+                }
+                ForwardModelStepStatus::Finished => {
+                    self.end_time = Some(event.time);
+                    self.error = Some(String::new());
+                }
+                ForwardModelStepStatus::Failed => {
+                    self.end_time = Some(event.time);
+                    self.error = event.error.clone();
+                }
             }
         }
         return self;
