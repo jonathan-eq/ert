@@ -11,7 +11,7 @@ use crate::events::dispatcher_event::fm_step_event::{
 };
 
 use crate::events::ensemble_event::{EnsembleStatus, RealEnsembleEvent};
-use crate::events::ert_event::RealRealization;
+use crate::events::ert_event::{RealizationEvent, RealizationTimeout};
 use crate::events::snapshot_event::EESnapshotEvent;
 use crate::events::{types::*, Event};
 use crate::update_field_if_set;
@@ -83,16 +83,34 @@ impl EnsembleSnapshot {
 
     pub fn update_real_from_event(
         &mut self,
-        event: &RealRealization,
+        event: &RealizationEvent,
         source_snapshot: &EnsembleSnapshot,
     ) -> &mut Self {
         let source_snapshot = source_snapshot;
         let mut mutate_snapshot = RealizationSnapshot::new();
         mutate_snapshot.update_from_event(event);
-        self._update_realization(event.real.clone(), &mutate_snapshot);
-        if let Some(status) = &event.status {
-            if *status == RealizationState::Timeout {
+        match event {
+            RealizationEvent::RealizationFailed(event) => {
+                self._update_realization(event.real.clone(), &mutate_snapshot);
+            }
+            RealizationEvent::RealizationPending(event) => {
+                self._update_realization(event.real.clone(), &mutate_snapshot);
+            }
+            RealizationEvent::RealizationRunning(event) => {
+                self._update_realization(event.real.clone(), &mutate_snapshot);
+            }
+            RealizationEvent::RealizationSuccess(event) => {
+                self._update_realization(event.real.clone(), &mutate_snapshot);
+            }
+            RealizationEvent::RealizationTimeout(event) => {
+                self._update_realization(event.real.clone(), &mutate_snapshot);
                 self._handle_realization_timeout(&mutate_snapshot, event, source_snapshot);
+            }
+            RealizationEvent::RealizationWaiting(event) => {
+                self._update_realization(event.real.clone(), &mutate_snapshot);
+            }
+            RealizationEvent::RealizationUnknown(event) => {
+                self._update_realization(event.real.clone(), &mutate_snapshot);
             }
         }
 
@@ -101,7 +119,7 @@ impl EnsembleSnapshot {
     fn _handle_realization_timeout(
         &mut self,
         mutate_snapshot: &RealizationSnapshot,
-        event: &RealRealization,
+        event: &RealizationTimeout,
         source_snapshot: &Self,
     ) {
         let mut snapshot_to_update_from = FMStepSnapshot::new();

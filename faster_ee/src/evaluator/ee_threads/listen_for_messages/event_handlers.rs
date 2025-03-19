@@ -5,7 +5,9 @@ use log::{debug, error, info, warn};
 use crate::{
     evaluator::QueueEvents,
     events::{
-        client_event::ClientEvent, dispatcher_event::DispatcherEvent, ert_event::ErtEvent,
+        client_event::ClientEvent,
+        dispatcher_event::DispatcherEvent,
+        ert_event::{ErtEvent, RealizationEvent},
         EECancelled, Event,
     },
     EE,
@@ -71,14 +73,40 @@ impl EE {
     pub fn _handle_event_from_ert(self: &Arc<Self>, json_string: &String) {
         match serde_json::from_str::<ErtEvent>(json_string.as_str()) {
             Ok(event) => match event {
-                ErtEvent::RealizationFailed(event)
-                | ErtEvent::RealizationPending(event)
-                | ErtEvent::RealizationRunning(event)
-                | ErtEvent::RealizationSuccess(event)
-                | ErtEvent::RealizationTimeout(event)
-                | ErtEvent::RealizationUnknown(event)
-                | ErtEvent::RealizationWaiting(event) => {
-                    self._events.push(Event::RealizationEvent(event));
+                ErtEvent::RealizationFailed(event) => {
+                    self._events.push(Event::RealizationEvent(
+                        RealizationEvent::RealizationFailed(event),
+                    ));
+                }
+                ErtEvent::RealizationPending(event) => {
+                    self._events.push(Event::RealizationEvent(
+                        RealizationEvent::RealizationPending(event),
+                    ));
+                }
+                ErtEvent::RealizationRunning(event) => {
+                    self._events.push(Event::RealizationEvent(
+                        RealizationEvent::RealizationRunning(event),
+                    ));
+                }
+                ErtEvent::RealizationSuccess(event) => {
+                    self._events.push(Event::RealizationEvent(
+                        RealizationEvent::RealizationSuccess(event),
+                    ));
+                }
+                ErtEvent::RealizationTimeout(event) => {
+                    self._events.push(Event::RealizationEvent(
+                        RealizationEvent::RealizationTimeout(event),
+                    ));
+                }
+                ErtEvent::RealizationUnknown(event) => {
+                    self._events.push(Event::RealizationEvent(
+                        RealizationEvent::RealizationUnknown(event),
+                    ));
+                }
+                ErtEvent::RealizationWaiting(event) => {
+                    self._events.push(Event::RealizationEvent(
+                        RealizationEvent::RealizationWaiting(event),
+                    ));
                 }
                 ErtEvent::EESnapshotUpdate(event) => {
                     warn!("GOT EE SNAPSHOTUpdate FROM ERT");

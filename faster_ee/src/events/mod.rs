@@ -3,7 +3,7 @@ use ensemble_event::RealEnsembleEvent;
 use serde::Serialize;
 use snapshot_event::EESnapshotEvent;
 
-use ert_event::RealRealization;
+use ert_event::{RealRealization, RealizationEvent};
 pub mod client_event;
 pub mod dispatcher_event;
 pub mod ert_event;
@@ -14,7 +14,7 @@ pub mod types;
 pub enum Event {
     EnsembleEvent(RealEnsembleEvent),
     FMEvent(RealForwardModelStep),
-    RealizationEvent(RealRealization),
+    RealizationEvent(RealizationEvent),
     EESnapshotUpdateEvent(EESnapshotEvent),
     EEFullSnapshotEvent(EESnapshotEvent),
 }

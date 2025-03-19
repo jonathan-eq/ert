@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::events::ert_event::realization_event::deserialize_status;
-use crate::events::ert_event::RealRealization;
+use crate::events::ert_event::{RealRealization, RealizationEvent};
 use crate::update_field;
 use crate::utils::is_none_or_empty;
 use crate::{events::types::FmStepId, update_field_if_not_empty, update_field_if_set};
@@ -40,6 +40,29 @@ pub enum RealizationState {
     Unknown,
     Timeout,
 }
+impl RealizationState {
+    pub fn get_unknown() -> RealizationState {
+        RealizationState::Unknown
+    }
+    pub fn get_waiting() -> RealizationState {
+        RealizationState::Waiting
+    }
+    pub fn get_pending() -> RealizationState {
+        RealizationState::Pending
+    }
+    pub fn get_running() -> RealizationState {
+        RealizationState::Running
+    }
+    pub fn get_failed() -> RealizationState {
+        RealizationState::Failed
+    }
+    pub fn get_finished() -> RealizationState {
+        RealizationState::Finished
+    }
+    pub fn get_timeout() -> RealizationState {
+        RealizationState::Timeout
+    }
+}
 
 impl RealizationState {
     pub fn to_str(self) -> &'static str {
@@ -67,29 +90,40 @@ impl RealizationSnapshot {
             fm_steps: HashMap::new(),
         }
     }
-    pub fn update_from_event(&mut self, event: &RealRealization) -> &mut Self {
-        self.exec_hosts = event.exec_hosts.clone();
-        if let Some(new_status) = event.status.clone() {
-            self.status = Some(new_status);
-        }
-        if let Some(status) = &self.status {
-            match status {
-                RealizationState::Running => {
-                    self.start_time = Some(event.time);
-                }
-                RealizationState::Failed => {
-                    self.message = event.message.clone();
-                    self.end_time = Some(event.time);
-                }
-                RealizationState::Finished => {
-                    self.end_time = Some(event.time);
-                }
-                RealizationState::Timeout => {
-                    self.end_time = Some(event.time);
-                }
-                _ => {}
+    pub fn update_from_event(&mut self, event: &RealizationEvent) -> &mut Self {
+        match event {
+            RealizationEvent::RealizationFailed(event) => {
+                self.message = event.message.clone();
+                self.end_time = Some(event.time);
+            }
+            RealizationEvent::RealizationRunning(event) => {
+                //self.exec_hosts = event.exec_hosts.clone();
+                self.status = Some(event.status.clone());
+                self.start_time = Some(event.time);
+            }
+
+            RealizationEvent::RealizationSuccess(event) => {
+                self.end_time = Some(event.time);
+                self.status = Some(event.status.clone());
+                self.exec_hosts = event.exec_hosts.clone();
+            }
+            RealizationEvent::RealizationTimeout(event) => {
+                self.end_time = Some(event.time);
+                self.exec_hosts = event.exec_hosts.clone();
+                self.status = Some(event.status.clone());
+            }
+            RealizationEvent::RealizationWaiting(event) => {
+                self.exec_hosts = event.exec_hosts.clone();
+                self.status = Some(event.status.clone());
+            }
+            RealizationEvent::RealizationUnknown(event) => {
+                self.status = Some(event.status.clone());
+            }
+            RealizationEvent::RealizationPending(event) => {
+                self.status = Some(event.status.clone());
             }
         }
+
         self
     }
     pub fn update_from(&mut self, other_snapshot: &Self) {

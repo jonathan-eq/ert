@@ -8,19 +8,19 @@ use super::snapshot_event::EESnapshotEvent;
 #[serde(tag = "event_type")]
 pub enum ErtEvent {
     #[serde(rename = "realization.waiting")]
-    RealizationWaiting(RealRealization),
+    RealizationWaiting(RealizationWaiting),
     #[serde(rename = "realization.pending")]
-    RealizationPending(RealRealization),
+    RealizationPending(RealizationPending),
     #[serde(rename = "realization.running")]
-    RealizationRunning(RealRealization),
+    RealizationRunning(RealizationRunning),
     #[serde(rename = "realization.success")]
-    RealizationSuccess(RealRealization),
+    RealizationSuccess(RealizationFinished),
     #[serde(rename = "realization.failure")]
-    RealizationFailed(RealRealization),
+    RealizationFailed(RealizationFailed),
     #[serde(rename = "realization.unknown")]
-    RealizationUnknown(RealRealization),
+    RealizationUnknown(RealizationUnknown),
     #[serde(rename = "realization.timeout")]
-    RealizationTimeout(RealRealization),
+    RealizationTimeout(RealizationTimeout),
     #[serde(rename = "ee.snapshot_update")]
     EESnapshotUpdate(EESnapshotEvent),
     #[serde(rename = "ee.snapshot")]
