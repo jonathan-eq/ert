@@ -1,10 +1,7 @@
-use std::str::FromStr;
+use chrono::NaiveDateTime;
+use serde::{Deserialize, Serialize};
 
-use chrono::{DateTime, NaiveDateTime, Utc};
-use serde::{de, Deserialize, Deserializer, Serialize};
-use serde_json::Value;
-
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct RealForwardModelStep {
     pub status: Option<ForwardModelStepStatus>,
     pub time: NaiveDateTime,
@@ -18,53 +15,111 @@ pub struct RealForwardModelStep {
     pub error: Option<String>,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
-pub enum ForwardModelStepStatus {
-    Running,
-    Finished,
-    Failed,
-    Pending,
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ForwardModelStepStart {
+    #[serde(default = "ForwardModelStepStatus::get_starting")]
+    pub status: ForwardModelStepStatus,
+    pub time: NaiveDateTime,
+    pub fm_step: String,
+    #[serde(rename = "real")]
+    pub real_id: String,
+    pub ensemble: Option<String>,
+    pub stdout: Option<String>,
+    pub stderr: Option<String>,
 }
 
-impl<'de> Deserialize<'de> for RealForwardModelStep {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        #[derive(Deserialize)]
-        struct RawStep {
-            event_type: String,
-            time: NaiveDateTime,
-            fm_step: String,
-            real: String,
-            std_out: Option<String>,
-            std_err: Option<String>,
-            current_memory_usage: Option<i64>,
-            max_memory_usage: Option<i64>,
-            cpu_seconds: Option<f64>,
-            error: Option<String>,
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ForwardModelStepRunning {
+    #[serde(default = "ForwardModelStepStatus::get_running")]
+    pub status: ForwardModelStepStatus,
+    pub time: NaiveDateTime,
+    pub fm_step: String,
+    #[serde(rename = "real")]
+    pub real_id: String,
+    pub ensemble: Option<String>,
+    pub max_memory_usage: Option<i64>,
+    pub current_memory_usage: Option<i64>,
+    pub cpu_seconds: Option<f64>,
+}
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ForwardModelStepSuccess {
+    #[serde(default = "ForwardModelStepStatus::get_finished")]
+    pub status: ForwardModelStepStatus,
+    pub time: NaiveDateTime,
+    pub fm_step: String,
+    #[serde(rename = "real")]
+    pub real_id: String,
+    pub ensemble: Option<String>,
+    pub current_memory_usage: Option<i64>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ForwardModelStepFailure {
+    #[serde(default = "ForwardModelStepStatus::get_failed")]
+    pub status: ForwardModelStepStatus,
+    pub time: NaiveDateTime,
+    pub fm_step: String,
+    #[serde(rename = "real")]
+    pub real_id: String,
+    pub ensemble: Option<String>,
+    pub error_msg: String,
+    pub exit_code: Option<i32>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
+pub enum ForwardModelStepStatus {
+    Pending,
+    Finished,
+    Failed,
+    Running,
+}
+
+impl ForwardModelStepStatus {
+    fn get_starting() -> ForwardModelStepStatus {
+        ForwardModelStepStatus::Pending
+    }
+    fn get_finished() -> ForwardModelStepStatus {
+        ForwardModelStepStatus::Finished
+    }
+    fn get_failed() -> ForwardModelStepStatus {
+        ForwardModelStepStatus::Failed
+    }
+    fn get_running() -> ForwardModelStepStatus {
+        ForwardModelStepStatus::Running
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub enum ForwardModelStepEvent {
+    Start(ForwardModelStepStart),
+    Running(ForwardModelStepRunning),
+    Success(ForwardModelStepSuccess),
+    Failure(ForwardModelStepFailure),
+}
+
+impl ForwardModelStepEvent {
+    pub fn get_real_id(&self) -> String {
+        match self {
+            ForwardModelStepEvent::Start(event) => event.real_id.clone(),
+            ForwardModelStepEvent::Running(event) => event.real_id.clone(),
+            ForwardModelStepEvent::Success(event) => event.real_id.clone(),
+            ForwardModelStepEvent::Failure(event) => event.real_id.clone(),
         }
-
-        let raw = RawStep::deserialize(deserializer)?;
-        let status = match raw.event_type.as_str() {
-            "forward_model_step.running" => Some(ForwardModelStepStatus::Running),
-            "forward_model_step.finished" => Some(ForwardModelStepStatus::Finished),
-            "forward_model_step.failed" => Some(ForwardModelStepStatus::Failed),
-            "forward_model_step.pending" => Some(ForwardModelStepStatus::Pending),
-            _ => None,
-        };
-
-        Ok(RealForwardModelStep {
-            status,
-            time: raw.time,
-            fm_step: raw.fm_step,
-            real_id: raw.real,
-            stdout: raw.std_out,
-            stderr: raw.std_err,
-            current_memory_usage: raw.current_memory_usage,
-            max_memory_usage: raw.max_memory_usage,
-            cpu_seconds: raw.cpu_seconds,
-            error: raw.error,
-        })
+    }
+    pub fn get_status(&self) -> ForwardModelStepStatus {
+        match self {
+            ForwardModelStepEvent::Start(event) => event.status.clone(),
+            ForwardModelStepEvent::Running(event) => event.status.clone(),
+            ForwardModelStepEvent::Success(event) => event.status.clone(),
+            ForwardModelStepEvent::Failure(event) => event.status.clone(),
+        }
+    }
+    pub fn get_fm_step_id(&self) -> String {
+        match self {
+            ForwardModelStepEvent::Start(event) => event.fm_step.clone(),
+            ForwardModelStepEvent::Running(event) => event.fm_step.clone(),
+            ForwardModelStepEvent::Success(event) => event.fm_step.clone(),
+            ForwardModelStepEvent::Failure(event) => event.fm_step.clone(),
+        }
     }
 }

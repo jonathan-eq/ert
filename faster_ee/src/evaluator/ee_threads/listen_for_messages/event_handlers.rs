@@ -6,7 +6,8 @@ use crate::{
     evaluator::QueueEvents,
     events::{
         client_event::ClientEvent,
-        dispatcher_event::DispatcherEvent,
+        dispatcher_event::{fm_step_event::ForwardModelStepEvent, DispatcherEvent},
+        ensemble_event::EnsembleEvent,
         ert_event::{ErtEvent, RealizationEvent},
         EECancelled, Event,
     },
@@ -21,16 +22,27 @@ impl EE {
                 DispatcherEvent::ForwardModelStepChecksum(event) => {
                     self._events_to_send.push(QueueEvents::Checksum(event));
                 }
-                DispatcherEvent::EnsembleFailed(event)
-                | DispatcherEvent::EnsembleStarted(event) => {
-                    self._events.push(Event::EnsembleEvent(event));
+                DispatcherEvent::EnsembleFailed(event) => {
+                    self._events
+                        .push(Event::EnsembleEvent(EnsembleEvent::Failed(event)));
+                }
+                DispatcherEvent::EnsembleStarted(event) => {
+                    self._events
+                        .push(Event::EnsembleEvent(EnsembleEvent::Started(event)));
                 }
 
-                DispatcherEvent::ForwardModelStepFailure(event)
-                | DispatcherEvent::ForwardModelStepRunning(event)
-                | DispatcherEvent::ForwardModelStepStart(event)
-                | DispatcherEvent::ForwardModelStepSuccess(event) => {
-                    self._events.push(Event::FMEvent(event));
+                DispatcherEvent::ForwardModelStepFailure(event) => self
+                    ._events
+                    .push(Event::FMEvent(ForwardModelStepEvent::Failure(event))),
+                DispatcherEvent::ForwardModelStepRunning(event) => self
+                    ._events
+                    .push(Event::FMEvent(ForwardModelStepEvent::Running(event))),
+                DispatcherEvent::ForwardModelStepStart(event) => self
+                    ._events
+                    .push(Event::FMEvent(ForwardModelStepEvent::Start(event))),
+                DispatcherEvent::ForwardModelStepSuccess(event) => {
+                    self._events
+                        .push(Event::FMEvent(ForwardModelStepEvent::Success(event)));
                 }
             },
             Err(err) => {
@@ -53,7 +65,7 @@ impl EE {
                             .unwrap()
                             .clone()
                             .unwrap_or_default(),
-                        monitor: Some(event.monitor.clone()),
+                        monitor: event.monitor.clone(),
                     });
                 }
                 ClientEvent::EEUserDone(event) => {

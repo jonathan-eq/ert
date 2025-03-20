@@ -2,7 +2,7 @@ use log::{debug, error, info};
 
 use super::super::QueueEvents;
 use super::do_heartbeat_clients::HEARTBEAT;
-use crate::events::client_event::ClientEvent;
+use crate::events::client_event::{ClientEvent, EEUserEvent};
 use crate::events::dispatcher_event::checksum_event::ForwardModelStepChecksum;
 use crate::events::dispatcher_event::DispatcherEvent;
 use crate::events::ert_event::ErtEvent;
@@ -39,7 +39,8 @@ impl EE {
             }
             QueueEvents::UserCancelledEE(inner) => {
                 if let Some(ert_identity) = self._ert_identity.read().unwrap().clone() {
-                    let json_str = &serde_json::to_string(&inner).unwrap();
+                    let json_str =
+                        &serde_json::to_string(&ClientEvent::EEUserCancel(inner.clone())).unwrap();
                     debug!("Sending UserCancelledEE to Ert identity {}", json_str);
                     self._send_bytes_to_identity(&ert_identity, &json_str.as_bytes().to_vec());
                 }
@@ -97,11 +98,10 @@ impl EE {
         identity: &Vec<u8>,
         snapshot_event: &EESnapshotEvent,
     ) {
-        debug!("SENDING EESNAPSHOT UPDATE TO CLIENT");
         match &serde_json::to_string(&ErtEvent::EESnapshotUpdate(snapshot_event.clone())) {
             Ok(snapshot_event_str) => {
+                debug!("SENDING EESNapshotUpdate to client {}", snapshot_event_str);
                 self._send_bytes_to_identity(identity, &snapshot_event_str.as_bytes().to_vec());
-                debug!("FINISHED SENDING EESNAPSHOT UPDATE TO CLIENT");
             }
             Err(err) => {
                 error!("Failed deserializing EESnapshotEvent {}", err.to_string());

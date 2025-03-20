@@ -7,10 +7,10 @@ use super::fm_step_snapshot::FMStepSnapshot;
 
 use super::realization_snapshot::{RealizationSnapshot, RealizationState};
 use crate::events::dispatcher_event::fm_step_event::{
-    ForwardModelStepStatus, RealForwardModelStep,
+    ForwardModelStepEvent, ForwardModelStepStatus,
 };
 
-use crate::events::ensemble_event::{EnsembleStatus, RealEnsembleEvent};
+use crate::events::ensemble_event::{EnsembleEvent, EnsembleStatus};
 use crate::events::ert_event::{RealizationEvent, RealizationTimeout};
 use crate::events::snapshot_event::EESnapshotEvent;
 use crate::events::{types::*, Event};
@@ -65,10 +65,10 @@ impl EnsembleSnapshot {
     pub fn merge_snapshot(&mut self, event: &EESnapshotEvent) {
         self.update_from(&event.snapshot);
     }
-    pub fn update_fm_from_event(&mut self, event: &RealForwardModelStep) -> &mut Self {
+    pub fn update_fm_from_event(&mut self, event: &ForwardModelStepEvent) -> &mut Self {
         let mut mutate_snapshot = FMStepSnapshot::new();
         mutate_snapshot.update_from_event(event);
-        self._update_fm_step(event.real_id.clone(), &mutate_snapshot);
+        self._update_fm_step(event.get_real_id().clone(), &mutate_snapshot);
         return self;
     }
 
@@ -155,8 +155,8 @@ impl EnsembleSnapshot {
         stored_snapshot.update_from(mutate_snapshot)
     }
 
-    fn update_ensemble_from_event(&mut self, event: &RealEnsembleEvent) -> &mut EnsembleSnapshot {
-        self._ensemble_state = Some(event.state.clone());
+    fn update_ensemble_from_event(&mut self, event: &EnsembleEvent) -> &mut EnsembleSnapshot {
+        self._ensemble_state = Some(event.get_status());
         self
     }
 

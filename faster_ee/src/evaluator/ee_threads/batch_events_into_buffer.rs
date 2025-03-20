@@ -4,7 +4,10 @@ use chrono::Utc;
 use log::{debug, warn};
 
 use crate::{
-    events::{ensemble_event::EnsembleStatus, Event},
+    events::{
+        ensemble_event::{EnsembleEvent, EnsembleStatus},
+        Event,
+    },
     EE,
 };
 
@@ -37,16 +40,17 @@ impl EE {
                         }
                         Event::EnsembleEvent(ref inner_event) => {
                             batch
-                                .entry(match inner_event.state {
-                                    EnsembleStatus::Cancelled => {
+                                .entry(match inner_event {
+                                    EnsembleEvent::Cancelled(_) => {
                                         DestinationHandler::EnsembleCancelled
                                     }
-                                    EnsembleStatus::Failed => DestinationHandler::EnsembleFailed,
-                                    EnsembleStatus::Started => DestinationHandler::EnsembleStarted,
-                                    EnsembleStatus::Succeeded => {
+                                    EnsembleEvent::Failed(_) => DestinationHandler::EnsembleFailed,
+                                    EnsembleEvent::Started(_) => {
+                                        DestinationHandler::EnsembleStarted
+                                    }
+                                    EnsembleEvent::Succeeded(_) => {
                                         DestinationHandler::EnsembleSucceeded
                                     }
-                                    EnsembleStatus::Unknown => DestinationHandler::EnsembleStarted,
                                 })
                                 .or_default()
                                 .push(event);

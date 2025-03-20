@@ -21,7 +21,7 @@ impl EE {
                 ._ensemble_id
                 .write()
                 .unwrap()
-                .replace(ensemble_started_event.ensemble_id.clone());
+                .replace(ensemble_started_event.get_ensemble_id());
         }
         if *ensemble_status != EnsembleState::Failed {
             self._create_update_snapshot_and_apply_to_main_snapshot(events);

@@ -1,26 +1,29 @@
 use checksum_event::ForwardModelStepChecksum;
-use fm_step_event::RealForwardModelStep;
+use fm_step_event::{
+    ForwardModelStepFailure, ForwardModelStepRunning, ForwardModelStepStart,
+    ForwardModelStepSuccess,
+};
 pub mod checksum_event;
 use serde::{Deserialize, Serialize};
-pub mod fm_step_event;
 
-use super::ensemble_event::RealEnsembleEvent;
+use super::ensemble_event::{EnsembleFailed, EnsembleStarted};
+pub mod fm_step_event;
 
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(tag = "event_type")]
 pub enum DispatcherEvent {
     #[serde(rename = "forward_model_step.start")]
-    ForwardModelStepStart(RealForwardModelStep),
+    ForwardModelStepStart(ForwardModelStepStart),
     #[serde(rename = "forward_model_step.running")]
-    ForwardModelStepRunning(RealForwardModelStep),
+    ForwardModelStepRunning(ForwardModelStepRunning),
     #[serde(rename = "forward_model_step.success")]
-    ForwardModelStepSuccess(RealForwardModelStep),
+    ForwardModelStepSuccess(ForwardModelStepSuccess),
     #[serde(rename = "forward_model_step.failure")]
-    ForwardModelStepFailure(RealForwardModelStep),
+    ForwardModelStepFailure(ForwardModelStepFailure),
     #[serde(rename = "forward_model_step.checksum")]
     ForwardModelStepChecksum(ForwardModelStepChecksum),
     #[serde(rename = "ensemble.started")]
-    EnsembleStarted(RealEnsembleEvent),
+    EnsembleStarted(EnsembleStarted),
     #[serde(rename = "ensemble.failed")]
-    EnsembleFailed(RealEnsembleEvent),
+    EnsembleFailed(EnsembleFailed),
 }
