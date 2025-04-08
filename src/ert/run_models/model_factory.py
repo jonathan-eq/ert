@@ -111,6 +111,7 @@ def _setup_ensemble_experiment(
     status_queue: SimpleQueue[StatusEvents],
 ) -> EnsembleExperiment:
     active_realizations = _get_active_realizations_list(args, config)
+    print(f"Running with {active_realizations=}")
     experiment_name = args.experiment_name
     assert experiment_name is not None
 
